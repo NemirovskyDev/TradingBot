@@ -1,0 +1,1 @@
+{"schema": 1, "runs": [{"id": "demo-momentum", "ticker": "DEMO", "strategy": "momentum", "label": "Exemplo · momentum"}, {"id": "demo-rsi_reversion", "ticker": "DEMO", "strategy": "rsi_reversion", "label": "Exemplo · rsi_reversion"}, {"id": "demo-sma_cross", "ticker": "DEMO", "strategy": "sma_cross", "label": "Exemplo · sma_cross"}]}

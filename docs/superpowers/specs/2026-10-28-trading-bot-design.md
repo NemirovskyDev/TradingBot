@@ -39,7 +39,7 @@ Os subagentes do `analyst` mostram os motivos, não uma nota mágica.
 ## 6. Testes e critério para passar ao paper trading
 Como testar:
 - Backtest com custos e slippage, sem look-ahead.
-- Treino e teste separados, mais walk-forward.
+- Treino e teste separados, mais walk-forward. Estado na fase 1 (2026-10-28): o veredito usa só o corte simples (30% mais recentes como teste); `walk_forward_windows` existe e tem teste, mas ainda não entra no veredito. Passa a valer quando calibrarmos o critério (por exemplo, exigir que a maioria das janelas passe).
 - Poucos parâmetros, para evitar overfitting.
 - Testes unitários em `risk` e `backtest`, porque um bug neles gera lucro falso.
 

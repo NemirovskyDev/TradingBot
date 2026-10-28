@@ -1,0 +1,13 @@
+# Valores iniciais do portão de risco e dos custos; pontos de partida a calibrar (não são recomendação).
+initial_capital = 10000.0
+
+[risk]
+risk_per_trade = 0.01        # fração do capital arriscada por trade
+max_open_positions = 5
+max_position_pct = 0.20      # teto de uma posição, fração do capital
+max_sector_pct = 0.40        # teto por setor, fração do capital
+weekly_loss_limit = 0.05     # perda semanal que pausa o bot
+
+[costs]
+commission = 0.0             # por trade
+slippage_bps = 5.0           # pontos-base contra o preço, em cada execução

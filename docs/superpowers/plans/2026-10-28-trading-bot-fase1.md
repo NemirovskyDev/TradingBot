@@ -72,9 +72,9 @@ tests/conftest.py        # fixture synthetic_prices(n, seed) -> DataFrame
 
 **Interfaces:**
 - Consumes: DataFrame de `get_prices`.
-- Produces: cada função devolve `pd.Series[int]` com o mesmo índice, valores `1` (comprado) ou `0` (fora), calculada só com dados até o dia t: `sma_cross(prices, fast: int = 20, slow: int = 50)`, `rsi_reversion(prices, period: int = 14, buy_below: float = 30, exit_above: float = 50)`, `momentum(prices, lookback: int = 60)`. Registro `STRATEGIES: dict[str, Callable]`.
+- Produces: cada função devolve `pd.Series[int]` com o mesmo índice, valores `1` (comprado) ou `0` (fora), calculada só com dados até o dia t: `sma_cross(prices, fast: int = 20, slow: int = 50)`, `rsi_reversion(prices, period: int = 14, buy_below: float = 30, exit_above: float = 50)`, `momentum(prices, lookback: int = 60)`. Registro `STRATEGIES: dict[str, Callable]` e `REASONS: dict[str, dict[str, str]]` com as frases em português de cada estratégia, chaves `"entry"` e `"exit"` (ex.: `REASONS["sma_cross"]["entry"] == "A média curta cruzou a longa para cima."`); o front exibe essas frases.
 
-- [ ] **Step 1: Write failing tests:** `test_sma_cross_long_when_fast_above_slow` (série crescente → último sinal 1), `test_sma_cross_flat_during_warmup` (primeiros `slow-1` valores 0), `test_strategies_short_history_all_zero` (30 linhas, sem exceção), `test_signal_has_no_lookahead` (alterar o último `close` não muda sinais anteriores).
+- [ ] **Step 1: Write failing tests:** `test_every_strategy_has_entry_and_exit_reason` (para cada chave de `STRATEGIES`, `REASONS[name]` tem `entry` e `exit` não vazios), `test_sma_cross_long_when_fast_above_slow` (série crescente → último sinal 1), `test_sma_cross_flat_during_warmup` (primeiros `slow-1` valores 0), `test_strategies_short_history_all_zero` (30 linhas, sem exceção), `test_signal_has_no_lookahead` (alterar o último `close` não muda sinais anteriores).
 - [ ] **Step 2:** Run. Expected: FAIL.
 - [ ] **Step 3:** Implementar com pandas; RSI de Wilder; `momentum` = 1 se retorno de `lookback` dias > 0.
 - [ ] **Step 4:** Run. Expected: PASS.
@@ -100,11 +100,11 @@ tests/conftest.py        # fixture synthetic_prices(n, seed) -> DataFrame
 
 **Interfaces:**
 - Consumes: `risk.position_size`, `risk.atr_stop`, `CostConfig`, `RiskConfig`.
-- Produces: `@dataclass BacktestResult(equity: pd.Series, trades: pd.DataFrame, metrics: dict[str, float])` com métricas `total_return`, `max_drawdown` (positivo, fração), `sharpe` (anualizado, 252), `n_trades`; `run_backtest(prices, signals, risk_cfg, cost_cfg, initial_capital=10_000.0) -> BacktestResult`; `buy_and_hold(prices, initial_capital=10_000.0) -> BacktestResult`; `split_train_test(prices, test_fraction: float = 0.3) -> tuple[pd.DataFrame, pd.DataFrame]` (corte temporal, sem embaralhar); `walk_forward_windows(prices, train_days: int = 504, test_days: int = 126) -> list[tuple[pd.DataFrame, pd.DataFrame]]` (janelas deslizantes, cada teste começa onde o treino termina, sem sobreposição entre testes).
+- Produces: `@dataclass BacktestResult(equity: pd.Series, trades: pd.DataFrame, metrics: dict[str, float], blocked: list[dict[str, str]])`; `trades` tem colunas `entry_date, entry_price, exit_date, exit_price, qty, stop, pnl_pct, exit_kind` (`exit_kind` é `"stop"` ou `"signal"`); `blocked` guarda `{"date", "reason"}` de cada sinal de compra rejeitado (quantidade 0 ou `RiskRejected`). Métricas `total_return`, `max_drawdown` (positivo, fração), `sharpe` (anualizado, 252), `n_trades`; `run_backtest(prices, signals, risk_cfg, cost_cfg, initial_capital=10_000.0) -> BacktestResult`; `buy_and_hold(prices, initial_capital=10_000.0) -> BacktestResult`; `split_train_test(prices, test_fraction: float = 0.3) -> tuple[pd.DataFrame, pd.DataFrame]` (corte temporal, sem embaralhar); `walk_forward_windows(prices, train_days: int = 504, test_days: int = 126) -> list[tuple[pd.DataFrame, pd.DataFrame]]` (janelas deslizantes, cada teste começa onde o treino termina, sem sobreposição entre testes).
 
 Regras: sinal do dia t executa na abertura de t+1, com slippage `slippage_bps` contra o preço e comissão por trade; stop via `atr_stop` na entrada, saída ao stop se `low <= stop` (preço do stop), ou na abertura seguinte a um sinal 0; sem alavancagem.
 
-- [ ] **Step 1: Write failing tests:** `test_signal_executes_next_open` (entrada igual ao `open` do dia seguinte mais slippage), `test_no_signals_equals_flat_equity` (equity constante, 0 trades), `test_stop_triggers_exit_at_stop_price`, `test_costs_reduce_return` (custo maior → `total_return` menor), `test_split_train_test_is_chronological`, `test_buy_and_hold_matches_price_ratio`, `test_walk_forward_windows_do_not_overlap_in_test` e `test_walk_forward_short_history_returns_empty_list`.
+- [ ] **Step 1: Write failing tests:** `test_signal_executes_next_open` (entrada igual ao `open` do dia seguinte mais slippage), `test_no_signals_equals_flat_equity` (equity constante, 0 trades), `test_stop_triggers_exit_at_stop_price`, `test_costs_reduce_return` (custo maior → `total_return` menor), `test_split_train_test_is_chronological`, `test_buy_and_hold_matches_price_ratio`, `test_zero_size_entry_is_recorded_as_blocked`, `test_trades_have_exit_kind`, `test_walk_forward_windows_do_not_overlap_in_test` e `test_walk_forward_short_history_returns_empty_list`.
 - [ ] **Step 2:** Run. Expected: FAIL.
 - [ ] **Step 3:** Implementar laço diário sobre as barras; uma posição por vez (fase 1, um ativo por backtest).
 - [ ] **Step 4:** Run. Expected: PASS.
@@ -167,3 +167,17 @@ Passa se: `sharpe` da estratégia > `sharpe` do buy and hold, `max_drawdown <= c
 - [ ] **Step 3:** Implementar com `argparse`; dividir `--start/--end` do treino e do teste via `split_train_test`.
 - [ ] **Step 4:** Run `pytest -v`. Expected: todos PASS.
 - [ ] **Step 5:** Verificação manual: `python -m tradingbot backtest SPY --strategy sma_cross --start 2015-01-01 --end 2025-12-31`. Expected: métricas, veredito e `reports/SPY_*.md`. Commit: `feat: cli e relatório`.
+
+### Task 10: Exportação JSON para o front
+
+**Files:** Create `src/tradingbot/export.py`, `src/tradingbot/demo.py`, `tests/test_export.py`; Modify `src/tradingbot/cli.py`
+
+**Interfaces:**
+- Consumes: `BacktestResult`, `Verdict`, `REASONS`, `get_prices`.
+- Produces: `export_run(run_id: str, ticker: str, strategy: str, params: dict, prices: pd.DataFrame, result: BacktestResult, benchmark: BacktestResult, verdict: Verdict, out_dir: Path, synthetic: bool = False) -> Path` grava `out_dir/runs/{run_id}.json` no formato da seção 5 da spec do front (`docs/superpowers/specs/2026-10-28-front-design.md`), com `reason_entry`/`reason_exit` vindos de `REASONS` (saída por stop usa a frase `"O preço tocou o stop de proteção."`); `write_index(out_dir: Path, runs: list[dict]) -> Path` grava `index.json` com `schema: 1`; `make_synthetic_prices(n: int = 750, seed: int = 7) -> pd.DataFrame` (passeio aleatório com tendência, mesmas colunas de `get_prices`). CLI: `python -m tradingbot export --out web/public/data --synthetic` gera três execuções de exemplo (`sma_cross`, `rsi_reversion`, `momentum`) com `synthetic: true`.
+
+- [ ] **Step 1: Write failing tests:** `test_export_run_matches_contract_keys` (chaves de `meta, prices, equity, trades, blocked, metrics, verdict`), `test_export_dates_are_iso_and_returns_are_fractions`, `test_export_stop_exit_uses_stop_reason`, `test_write_index_has_schema_1`, `test_synthetic_prices_are_deterministic_for_same_seed`, `test_export_marks_synthetic_flag`.
+- [ ] **Step 2:** Run `pytest tests/test_export.py -v`. Expected: FAIL.
+- [ ] **Step 3:** Implementar com `json` da biblioteca padrão; arredondar preços a 4 casas e frações a 6.
+- [ ] **Step 4:** Run `pytest -v`. Expected: todos PASS; `python -m tradingbot export --out web/public/data --synthetic` cria `index.json` e três arquivos em `runs/`.
+- [ ] **Step 5:** Commit: `feat: exportação JSON para o front`.
