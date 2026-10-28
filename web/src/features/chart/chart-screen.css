@@ -1,0 +1,110 @@
+.chart-screen {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+.side {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.trade-list {
+  max-height: 20rem; /* lista longa rola dentro do painel em vez de esticar a página */
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #b9c4d0 transparent;
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.trade-list button {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease-out, background-color 120ms ease-out;
+}
+.trade-list button span:last-child {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.trade-list button:hover {
+  border-color: #b9c4d0;
+  background: var(--ground);
+}
+.trade-list button[aria-pressed="true"] {
+  border-color: var(--action);
+  background: var(--action-wash);
+}
+
+.result-gain {
+  color: var(--gain);
+  font-weight: 600;
+}
+.result-loss {
+  color: var(--loss);
+  font-weight: 600;
+}
+.result-flat {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.result-word {
+  color: var(--ink-soft);
+}
+
+.trade-detail h3 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+}
+.trade-detail dl {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+}
+.trade-detail .why-list {
+  margin-bottom: var(--space-4);
+}
+.trade-detail dt {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 560;
+}
+.trade-detail dd {
+  margin: var(--space-1) 0 0;
+}
+.trade-detail .why-list dd {
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+.trade-detail .facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.prompt {
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px dashed #b9c4d0;
+  border-radius: var(--radius);
+  color: var(--ink-soft);
+}
+
+@media (max-width: 1023px) {
+  .chart-screen {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

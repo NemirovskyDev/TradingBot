@@ -1,0 +1,58 @@
+.trades {
+  padding: 0;
+  overflow-x: auto; /* rede de segurança: a tabela nunca alarga a página */
+}
+.trades-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-5) var(--space-3);
+}
+.filter {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--ground);
+}
+.filter button {
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-weight: 560;
+  cursor: pointer;
+  transition: background-color 120ms ease-out, color 120ms ease-out;
+}
+.filter button:hover {
+  color: var(--ink);
+}
+.filter button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgb(20 32 43 / 0.12);
+}
+.trades .sortable {
+  border-top: 1px solid var(--line);
+}
+.row-link {
+  color: var(--action);
+  font-weight: 560;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .trades-head {
+    padding-inline: var(--space-4);
+  }
+  .trades .sortable {
+    padding: var(--space-3);
+    border-top: 1px solid var(--line);
+  }
+}

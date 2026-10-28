@@ -1,0 +1,32 @@
+.risk {
+  display: grid;
+  gap: var(--space-5);
+}
+.limits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--space-5) var(--space-6);
+  margin: var(--space-4) 0 0;
+}
+.limits dt {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 560;
+}
+.limits dd {
+  margin: var(--space-1) 0 0;
+}
+.limits dd:not(.limit-note) {
+  font-size: var(--text-lg);
+  font-weight: 650;
+}
+.limit-note {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+.blocked {
+  padding-bottom: var(--space-2);
+}
+.blocked .sortable {
+  margin-top: var(--space-2);
+}
