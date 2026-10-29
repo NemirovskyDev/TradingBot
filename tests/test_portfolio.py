@@ -5,13 +5,17 @@ import pandas as pd
 import pytest
 
 from tradingbot.portfolio import (
+    ALL_PORTFOLIOS,
     METHODOLOGIES,
+    PROFILE_PORTFOLIOS,
+    breakout_target,
     REBALANCE_COST,
     annual_returns,
     drawdown,
     gem_target,
     ivy_target,
     metrics,
+    own_start,
     period_ends,
     simulate,
 )
@@ -194,3 +198,85 @@ def test_arca_is_25_percent_in_each_quadrant():
 def test_all_weather_matches_the_published_allocation():
     aw = dict(next(m for m in METHODOLOGIES if m.id == "all-weather").weights)
     assert aw == {"VTI": 0.30, "TLT": 0.40, "IEF": 0.15, "GLD": 0.075, "DBC": 0.075}
+
+
+def _closes(**series):
+    n = len(next(iter(series.values())))
+    return pd.DataFrame({k: np.asarray(v, dtype=float) for k, v in series.items()}, index=pd.bdate_range("2020-01-01", periods=n))
+
+
+def test_period_ends_daily_is_every_day():
+    idx = pd.bdate_range("2020-01-01", periods=5)
+    assert period_ends(idx, "daily") == set(idx)
+
+
+def test_breakout_holds_an_asset_only_after_it_breaks_its_recent_high_and_leaves_below_the_low():
+    up = np.concatenate([np.full(70, 100.0), np.linspace(100, 140, 20), np.linspace(140, 80, 30)])
+    flat = np.full(len(up), 50.0)
+    h = _closes(UP=up, FLAT=flat, CDI=np.cumprod(np.full(len(up), 1.0004)))
+    target = breakout_target(("UP", "FLAT"), "CDI", entry=55, exit_=20)
+    assert target(h.index[40], h.iloc[:41]) == {"UP": 0.0, "FLAT": 0.0, "CDI": 1.0}  # sem 55 dias de histórico
+    assert target(h.index[80], h.iloc[:81]) == {"UP": 0.5, "FLAT": 0.0, "CDI": 0.5}  # rompeu a máxima
+    assert target(h.index[-1], h) == {"UP": 0.0, "FLAT": 0.0, "CDI": 1.0}  # caiu abaixo da mínima de 20 dias
+
+
+def test_breakout_is_incremental_and_matches_a_fresh_run_day_by_day():
+    rng = np.random.default_rng(3)
+    a = 100 * np.cumprod(1 + rng.normal(0.001, 0.02, 300))
+    b = 100 * np.cumprod(1 + rng.normal(0.0, 0.02, 300))
+    h = _closes(A=a, B=b, CDI=np.cumprod(np.full(300, 1.0004)))
+    running = breakout_target(("A", "B"), "CDI")
+    for i in range(100, 300, 7):
+        fresh = breakout_target(("A", "B"), "CDI")(h.index[i], h.iloc[: i + 1])
+        assert running(h.index[i], h.iloc[: i + 1]) == fresh
+
+
+def test_breakout_ignores_a_missing_price_instead_of_crashing():
+    a = np.concatenate([np.full(10, np.nan), np.linspace(100, 200, 120)])
+    h = _closes(A=a, CDI=np.cumprod(np.full(130, 1.0004)))
+    w = breakout_target(("A",), "CDI")(h.index[-1], h)
+    assert sum(w.values()) == pytest.approx(1.0)
+
+
+def test_profile_portfolios_are_four_with_valid_weights_and_sit_apart_from_the_classics():
+    assert [m.id for m in PROFILE_PORTFOLIOS] == ["renda-dividendos", "estabilidade", "crescimento", "swing-alto-risco"]
+    assert [m.id for m in ALL_PORTFOLIOS] == [m.id for m in METHODOLOGIES] + [m.id for m in PROFILE_PORTFOLIOS]
+    assert all(m.kind == "profile" for m in PROFILE_PORTFOLIOS) and all(m.kind == "classic" for m in METHODOLOGIES)
+    for m in PROFILE_PORTFOLIOS:
+        if m.weights is not None:
+            assert sum(w for _, w in m.weights) == pytest.approx(1.0)
+
+
+def test_dividend_portfolio_mixes_fiis_brazilian_and_us_payers():
+    w = dict(next(m for m in PROFILE_PORTFOLIOS if m.id == "renda-dividendos").weights)
+    assert w["FII"] == 0.40 and w["SCHD"] == 0.10 and w["KO"] == 0.05 and w["BBAS3"] == 0.05
+
+
+def test_stability_portfolio_is_mostly_cash_and_swing_checks_every_day():
+    stab = dict(next(m for m in PROFILE_PORTFOLIOS if m.id == "estabilidade").weights)
+    assert stab["CDI"] == 0.70
+    swing = next(m for m in PROFILE_PORTFOLIOS if m.id == "swing-alto-risco")
+    assert swing.rebalance == "daily" and swing.weights is None and "CDI" in swing.universe and len(swing.universe) == 9
+
+
+def test_swing_waits_for_its_long_lived_assets_but_not_for_the_recent_ones():
+    swing = next(m for m in PROFILE_PORTFOLIOS if m.id == "swing-alto-risco")
+    assert swing.optional == ("TSLA", "META")
+    idx = pd.bdate_range("2004-01-01", periods=400)
+    cols = {name: np.full(400, 100.0) for name in swing.universe}
+    table = pd.DataFrame(cols, index=idx)
+    table["CDI"] = np.cumprod(np.full(400, 1.0004))
+    table["NVDA"] = np.concatenate([np.full(50, np.nan), np.full(350, 100.0)])  # obrigatório: o início espera por ele
+    table["TSLA"] = np.nan  # opcional: não atrasa
+    start = own_start(table, swing)
+    assert start == idx[idx >= idx[50] + pd.Timedelta(days=90)][0]
+
+
+def test_own_start_is_the_latest_first_price_plus_warmup_and_rejects_missing_instruments():
+    idx = pd.bdate_range("2020-01-01", periods=400)
+    table = pd.DataFrame({"A": np.concatenate([np.full(5, np.nan), np.full(395, 1.0)]), "B": np.full(400, 1.0)}, index=idx)
+    static = type(METHODOLOGIES[0])("x", "X", "a", "s", "r", "yearly", ("A", "B"), (("A", 0.5), ("B", 0.5)), lambda: None)
+    assert own_start(table, static) == idx[5]
+    table["A"] = np.nan
+    with pytest.raises(ValueError, match="A"):
+        own_start(table, static)

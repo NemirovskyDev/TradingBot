@@ -6,7 +6,7 @@ import pytest
 
 from tradingbot.data import DataError
 from tradingbot import portfolio_data
-from tradingbot.portfolio_data import FII_BASKET, build_price_table, fetch_cdi, fii_basket
+from tradingbot.portfolio_data import FII_BASKET, build_price_table, fetch_cdi, fii_basket, splice
 
 
 class _Resp:
@@ -83,23 +83,36 @@ def _closes(start="2020-01-01", n=30, base=10.0, step=0.1):
     return pd.Series(base + step * np.arange(n), index=pd.bdate_range(start, periods=n))
 
 
-def test_fii_basket_averages_available_constituents_and_skips_missing():
+def test_fii_basket_starts_only_when_enough_constituents_have_data():
     a = _closes(base=10.0, step=0.1)
     b = _closes(start="2020-01-08", base=20.0, step=0.4)  # entra depois
+    c = _closes(start="2020-01-15", base=30.0, step=0.3)  # a cesta só começa aqui: antes só há 2 fundos
 
     def get_close(ticker):
-        if ticker == FII_BASKET[0]:
-            return a
-        if ticker == FII_BASKET[1]:
-            return b
-        if ticker == FII_BASKET[2]:
-            return a * 2
-        raise DataError("sem dados")
+        return {FII_BASKET[0]: a, FII_BASKET[1]: b, FII_BASKET[2]: c}[ticker] if ticker in FII_BASKET[:3] else (_ for _ in ()).throw(DataError("sem dados"))
 
     basket = fii_basket(get_close)
-    assert basket.index[0] == a.index[0] and basket.iloc[0] == pytest.approx(1.0)
-    first_return = (a.iloc[1] / a.iloc[0] - 1)  # no 2º dia só a e a*2 existem, com o mesmo retorno
-    assert basket.iloc[1] == pytest.approx(1 + first_return)
+    assert basket.index[0] == c.index[0] and basket.iloc[0] == pytest.approx(1.0)
+    expected = 1 + (a.iloc[11] / a.iloc[10] - 1 + b.iloc[6] / b.iloc[5] - 1 + c.iloc[1] / c.iloc[0] - 1) / 3
+    assert basket.iloc[1] == pytest.approx(expected)
+
+
+def test_splice_fills_the_past_with_the_scaled_proxy_and_keeps_the_real_series():
+    idx = pd.bdate_range("2020-01-01", periods=10)
+    real = pd.Series([np.nan] * 5 + [200.0, 210.0, 220.0, 230.0, 240.0], index=idx)
+    proxy = pd.Series(np.arange(10, dtype=float) + 100.0, index=idx)  # 100..109; no dia 5 vale 105
+    out = splice(real, proxy)
+    assert out.iloc[5:].tolist() == real.iloc[5:].tolist()
+    assert out.iloc[5] == pytest.approx(200.0)
+    assert out.iloc[4] == pytest.approx(104.0 * 200.0 / 105.0)  # mesma variação do substituto, escalada
+    assert out.notna().all()
+
+
+def test_splice_without_overlap_keeps_the_real_series_untouched():
+    idx = pd.bdate_range("2020-01-01", periods=6)
+    real = pd.Series([np.nan, np.nan, np.nan, 10.0, 11.0, 12.0], index=idx)
+    proxy = pd.Series([np.nan] * 6, index=idx)
+    assert splice(real, proxy).equals(real)
 
 
 def test_fii_basket_needs_enough_constituents():
@@ -112,15 +125,18 @@ def test_fii_basket_needs_enough_constituents():
         fii_basket(get_close)
 
 
-def test_build_price_table_converts_usd_to_reais_and_aligns_to_b3_calendar():
+def test_build_price_table_converts_usd_to_reais_aligns_to_b3_and_splices_proxies():
     b3 = pd.bdate_range("2020-01-01", periods=10)
     us_days = b3.delete(3)  # feriado americano em um dia útil da B3
+    late = b3[4:]  # o ETF só existe a partir do 5º dia
 
     def get_close(ticker):
+        if ticker == "^BVSP":
+            return pd.Series(1000.0 + np.arange(10), index=b3)
         if ticker == "BRL=X":
             return pd.Series(5.0, index=b3)
         if ticker in ("BOVA11.SA", "IVVB11.SA"):
-            return pd.Series(100.0, index=b3)
+            return pd.Series(100.0, index=late)
         if ticker.endswith(".SA"):
             return pd.Series(10.0 + np.arange(10) * 0.1, index=b3)
         return pd.Series(10.0, index=us_days)
@@ -130,8 +146,11 @@ def test_build_price_table_converts_usd_to_reais_and_aligns_to_b3_calendar():
 
     table = build_price_table(date(2020, 1, 1), date(2020, 2, 1), get_close, get_cdi)
     assert table.index.equals(b3)
-    assert {"BOVA11", "IVVB11", "FII", "CDI", "VTI", "GLD", "BND"} <= set(table.columns)
+    assert {"BOVA11", "IVVB11", "FII", "CDI", "VTI", "GLD", "BND", "QQQ", "BBAS3", "NVDA"} <= set(table.columns)
     assert (table["VTI"] == 50.0).all()  # US$10 x R$5, com o feriado preenchido pelo dia anterior
+    assert table["BOVA11"].notna().all() and table["BOVA11"].iloc[4] == pytest.approx(100.0)  # o passado vem do índice
+    assert table["BOVA11"].iloc[3] == pytest.approx(100.0 * 1003 / 1004)
+    assert table["IVVB11"].notna().all()  # o passado vem do S&P 500 (SPY) em reais
     assert table["CDI"].iloc[0] == pytest.approx(1.0004)
     assert table["CDI"].iloc[-1] == pytest.approx(1.0004**10)
 
@@ -144,3 +163,20 @@ def test_build_price_table_reports_the_instrument_that_failed():
 
     with pytest.raises(DataError, match="GLD"):
         build_price_table(date(2020, 1, 1), date(2020, 2, 1), get_close, lambda s, e: pd.Series(1.0004, index=pd.bdate_range("2020-01-01", periods=5)))
+
+
+def test_a_one_day_hole_in_a_brazilian_series_is_filled_but_a_long_gap_is_not():
+    b3 = pd.bdate_range("2020-01-01", periods=30)
+
+    def get_close(ticker):
+        if ticker in ("^BVSP", "BRL=X"):
+            return pd.Series(5.0, index=b3)
+        if ticker == "PETR4.SA":
+            return pd.Series(10.0, index=b3.delete([10, 20, 21, 22, 23, 24, 25, 26]))  # 1 dia e depois 7 dias sem dado
+        if ticker.endswith(".SA"):
+            return pd.Series(10.0 + np.arange(30) * 0.1, index=b3)
+        return pd.Series(10.0, index=b3)
+
+    table = build_price_table(date(2020, 1, 1), date(2020, 3, 1), get_close, lambda s, e: pd.Series(1.0004, index=b3))
+    assert table["PETR4"].iloc[10] == 10.0  # buraco de um dia: preenchido
+    assert pd.isna(table["PETR4"].iloc[26])  # buraco longo: depois de 5 dias preenchidos, volta a faltar

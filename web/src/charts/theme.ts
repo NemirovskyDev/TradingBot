@@ -15,6 +15,9 @@ export interface ChartColors {
   gain: string;
   loss: string;
   benchmark: string;
+  refCdi: string;
+  refIbov: string;
+  refSp: string;
 }
 
 export function chartColors(): ChartColors {
@@ -26,6 +29,9 @@ export function chartColors(): ChartColors {
     action: cssVar("--action", "#7cb2ff"),
     gain: cssVar("--gain", "#3ddc97"),
     loss: cssVar("--loss", "#ff7b7b"),
+    refCdi: cssVar("--ref-cdi", "#8fa1b3"),
+    refIbov: cssVar("--ref-ibov", "#f5a524"),
+    refSp: cssVar("--ref-sp", "#c9a7ff"),
     benchmark: cssVar("--benchmark", "#8fa1b3"), // contraste ≥3:1 sobre a superfície, para a linha tracejada
   };
 }

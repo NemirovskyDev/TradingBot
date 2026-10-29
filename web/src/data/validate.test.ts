@@ -92,13 +92,17 @@ test("parseIndex rejects duplicate run ids", () => {
 
 const rawPortfolios = () => JSON.parse(JSON.stringify(makePortfolios()));
 
-test("parsePortfolios accepts a valid fixture, including null metrics", () => {
+test("parsePortfolios accepts a valid fixture, including null metrics and a series that starts late", () => {
   const raw = rawPortfolios();
   raw.portfolios[0].metrics.sharpe = null;
   const data = parsePortfolios(raw);
-  expect(data.portfolios.map((p) => p.id)).toEqual(["arca", "momentum-dual"]);
+  expect(data.portfolios.map((p) => p.id)).toEqual(["arca", "momentum-dual", "renda-dividendos", "estabilidade", "crescimento", "swing-alto-risco"]);
   expect(data.portfolios[0]!.metrics.sharpe).toBeNull();
+  expect(data.portfolios[1]!.equity[0]).toBeNull();
+  expect(data.portfolios[0]!.kind).toBe("classic");
   expect(data.benchmarks).toHaveLength(3);
+  expect(data.profiles.map((p) => p.id)).toEqual(["renda-dividendos", "estabilidade", "crescimento", "swing-alto-risco"]);
+  expect(data.profiles[1]!.related_ids).toEqual(["arca", "momentum-dual"]);
 });
 
 test("parsePortfolios rejects a series whose length does not match the dates, naming the field", () => {
@@ -107,24 +111,42 @@ test("parsePortfolios rejects a series whose length does not match the dates, na
   expect(() => parsePortfolios(raw)).toThrow(/portfolios\[1\]\.equity/);
 });
 
+test("parsePortfolios rejects a series that is entirely empty", () => {
+  const raw = rawPortfolios();
+  raw.portfolios[1].equity = [null, null, null, null];
+  expect(() => parsePortfolios(raw)).toThrow(/pelo menos um valor/);
+});
+
 test("parsePortfolios rejects other schema versions, other currencies and unordered dates", () => {
-  expect(() => parsePortfolios({ ...rawPortfolios(), schema: 2 })).toThrow(/versão/i);
+  expect(() => parsePortfolios({ ...rawPortfolios(), schema: 1 })).toThrow(/versão/i);
   expect(() => parsePortfolios({ ...rawPortfolios(), currency: "USD" })).toThrow(/currency/);
   const raw = rawPortfolios();
   raw.dates[2] = "2020-01-01";
   expect(() => parsePortfolios(raw)).toThrow(/dates/);
 });
 
-test("parsePortfolios rejects duplicate ids, an unknown rebalance and NaN-like values", () => {
+test("parsePortfolios rejects duplicate ids, an unknown rebalance or kind and NaN-like values", () => {
   const dup = rawPortfolios();
   dup.benchmarks[0].id = "arca";
   expect(() => parsePortfolios(dup)).toThrow(/identificador único/);
   const reb = rawPortfolios();
   reb.portfolios[0].rebalance = "weekly";
   expect(() => parsePortfolios(reb)).toThrow(/rebalance/);
+  const kind = rawPortfolios();
+  kind.portfolios[0].kind = "outro";
+  expect(() => parsePortfolios(kind)).toThrow(/kind/);
   const bad = rawPortfolios();
   bad.portfolios[0].equity[1] = "x";
   expect(() => parsePortfolios(bad)).toThrow(DataError);
+});
+
+test("parsePortfolios rejects a profile that points to a portfolio that does not exist", () => {
+  const raw = rawPortfolios();
+  raw.profiles[0].portfolio_id = "nao-existe";
+  expect(() => parsePortfolios(raw)).toThrow(/profiles\[0\]\.portfolio_id/);
+  const rel = rawPortfolios();
+  rel.profiles[1].related_ids = ["arca", "fantasma"];
+  expect(() => parsePortfolios(rel)).toThrow(/related_ids\[1\]/);
 });
 
 test.each([null, 7, "texto", []])("parsePortfolios rejects non-object input %p", (value) => {

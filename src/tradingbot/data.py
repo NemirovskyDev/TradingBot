@@ -15,10 +15,22 @@ class DataError(Exception):
     """Ticker inválido, sem dados ou falha ao baixar."""
 
 
-def _yfinance_fetch(ticker: str, start: str, end: str) -> pd.DataFrame:
-    import yfinance as yf  # import tardio: os testes não precisam da rede
+MIN_EXPECTED_BARS = 300  # menos que isso num pedido de muitos anos indica que o Yahoo recusou a data inicial
 
-    return yf.download(ticker, start=start, end=end, auto_adjust=True, progress=False)
+
+def _yfinance_fetch(ticker: str, start: str, end: str, download=None) -> pd.DataFrame:
+    if download is None:
+        import yfinance as yf  # import tardio: os testes não precisam da rede
+
+        download = yf.download
+    raw = download(ticker, start=start, end=end, auto_adjust=True, progress=False)
+    years = (date.fromisoformat(end) - date.fromisoformat(start)).days / 365
+    if years > 3 and (raw is None or len(raw) < MIN_EXPECTED_BARS):
+        # com um início muito antigo o Yahoo devolve só uns dias de alguns ativos (criptos): pede o histórico máximo e recorta
+        full = download(ticker, period="max", auto_adjust=True, progress=False)
+        if full is not None and len(full) > (0 if raw is None else len(raw)):
+            raw = full.loc[(full.index >= pd.Timestamp(start)) & (full.index < pd.Timestamp(end))]
+    return raw
 
 
 def _normalize(raw: pd.DataFrame, ticker: str) -> pd.DataFrame:

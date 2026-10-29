@@ -100,7 +100,7 @@ export interface Run {
   verdict: Verdict;
 }
 
-/** Carteiras (portfolios.json): todas as séries compartilham `dates` e começam em 100. Retornos são frações; null quando não há como calcular. */
+/** Carteiras (portfolios.json, versão 2). Cada carteira começa na sua data mais antiga: as séries compartilham `dates` e ficam `null` antes do início. Retornos são frações. */
 export interface PortfolioMetrics {
   total_return: number | null;
   cagr: number | null;
@@ -116,12 +116,21 @@ export interface AnnualReturn {
   partial: boolean;
 }
 
+export interface ReferenceSummary {
+  metrics: PortfolioMetrics;
+  annual_returns: AnnualReturn[];
+}
+
 export interface PortfolioSeries {
   id: string;
   name: string;
-  equity: number[];
-  drawdown: number[];
+  /** Valor de R$ 100 por data; null antes do início da série. */
+  equity: (number | null)[];
+  drawdown: (number | null)[];
+  /** No período próprio (do início da série até o fim). */
   metrics: PortfolioMetrics;
+  /** Na janela comum, a mesma para todas as carteiras. */
+  metrics_common: PortfolioMetrics;
   annual_returns: AnnualReturn[];
 }
 
@@ -131,23 +140,41 @@ export interface PortfolioComponent {
 }
 
 export interface Portfolio extends PortfolioSeries {
+  /** "classic" é uma metodologia publicada; "profile" é um exemplo montado pelo projeto para um perfil. */
+  kind: "classic" | "profile";
   author: string;
   summary: string;
   rule: string;
-  rebalance: "yearly" | "monthly";
-  /** Vazio nas metodologias em que os pesos mudam com o sinal (Ivy, momentum dual). */
+  rebalance: "yearly" | "monthly" | "daily";
+  /** Vazio nas metodologias em que os pesos mudam com o sinal (Ivy, momentum dual, swing). */
   components: PortfolioComponent[];
   universe: string[];
+  start: string;
+  /** As referências (cdi, ibovespa, sp500) medidas no mesmo período desta carteira. */
+  benchmarks: Record<string, ReferenceSummary>;
+}
+
+export interface Profile {
+  id: string;
+  name: string;
+  tagline: string;
+  expect: string;
+  warning: string;
+  portfolio_id: string;
+  related_ids: string[];
+  runs_link: boolean;
 }
 
 export interface PortfolioData {
-  schema: 1;
+  schema: 2;
   currency: "BRL";
   generated_at: string;
   start: string;
+  common_start: string;
   end: string;
   dates: string[];
   assumptions: string[];
   portfolios: Portfolio[];
   benchmarks: PortfolioSeries[];
+  profiles: Profile[];
 }

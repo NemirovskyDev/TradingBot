@@ -1,4 +1,4 @@
-import type { PortfolioData, Run, RunIndex } from "../data/types";
+import type { Portfolio, PortfolioData, Run, RunIndex } from "../data/types";
 
 function isoDay(offset: number): string {
   const d = new Date(Date.UTC(2024, 0, 1 + offset));
@@ -95,54 +95,87 @@ export function makeIndex(): RunIndex {
   };
 }
 
-/** Carteiras de exemplo: 4 datas, duas carteiras (uma de pesos fixos, uma de rotação) e as três referências. */
+/** Carteiras de exemplo (schema 2): 4 datas, 2 metodologias clássicas (a segunda começa depois), os 4 exemplos por perfil e as 3 referências. */
 export function makePortfolios(): PortfolioData {
-  const series = (id: string, name: string, equity: number[], cagr: number) => ({
+  const metrics = (cagr: number, drawdown = -0.24) => ({ total_return: 0.3, cagr, volatility: 0.09, max_drawdown: drawdown, sharpe: 0.3 });
+  const annual = [
+    { year: 2020, return: 0.05, partial: true },
+    { year: 2021, return: 0.12, partial: false },
+  ];
+  const benchmarksOf = (): Portfolio["benchmarks"] => ({
+    cdi: { metrics: metrics(0.101, 0), annual_returns: annual },
+    ibovespa: { metrics: metrics(0.104, -0.4), annual_returns: annual },
+    sp500: { metrics: metrics(0.212, -0.3), annual_returns: annual },
+  });
+  const portfolio = (
+    id: string,
+    name: string,
+    kind: Portfolio["kind"],
+    equity: (number | null)[],
+    cagr: number,
+    extra: Partial<Portfolio> = {},
+  ): Portfolio => ({
     id,
     name,
+    kind,
     equity,
-    drawdown: equity.map((v) => Math.min(0, v / Math.max(...equity) - 1)),
-    metrics: { total_return: equity[equity.length - 1]! / 100 - 1, cagr, volatility: 0.09, max_drawdown: -0.24, sharpe: 0.3 },
-    annual_returns: [
-      { year: 2020, return: 0.05, partial: true },
-      { year: 2021, return: 0.12, partial: false },
-    ],
+    drawdown: equity.map(() => -0.01),
+    metrics: metrics(cagr),
+    metrics_common: metrics(cagr - 0.014, -0.2),
+    annual_returns: annual,
+    author: kind === "classic" ? "Autor da metodologia" : "Exemplo montado pelo projeto",
+    summary: `Resumo de ${name}.`,
+    rule: "Rebalanceia uma vez por ano.",
+    rebalance: "yearly",
+    components: [{ label: "Caixa (CDI)", weight: 0.25 }],
+    universe: ["Caixa (CDI)"],
+    start: "2020-06-01",
+    benchmarks: benchmarksOf(),
+    ...extra,
+  });
+  const profile = (id: string, related: string[] = [], runs = false) => ({
+    id,
+    name: `Perfil ${id}`,
+    tagline: `Objetivo de ${id}.`,
+    expect: `O que esperar de ${id}.`,
+    warning: `Aviso de ${id}.`,
+    portfolio_id: id,
+    related_ids: related,
+    runs_link: runs,
   });
   return {
-    schema: 1,
+    schema: 2,
     currency: "BRL",
     generated_at: "2026-10-28",
     start: "2020-06-01",
+    common_start: "2020-12-01",
     end: "2021-06-01",
     dates: ["2020-06-01", "2020-12-01", "2021-03-01", "2021-06-01"],
     assumptions: ["Tudo em reais.", "Não há imposto de renda."],
     portfolios: [
-      {
-        ...series("arca", "ARCA", [100, 110, 120, 130], 0.125),
-        author: "Thiago Nigro (Primo Rico)",
-        summary: "Quatro quadrantes de 25%.",
-        rule: "Rebalanceia uma vez por ano.",
-        rebalance: "yearly",
-        components: [
-          { label: "Ações brasileiras (BOVA11)", weight: 0.25 },
-          { label: "Caixa (CDI)", weight: 0.25 },
-        ],
-        universe: ["Ações brasileiras (BOVA11)", "Caixa (CDI)"],
-      },
-      {
-        ...series("momentum-dual", "Momentum dual (GEM)", [100, 105, 95, 140], 0.158),
-        author: "Gary Antonacci",
-        summary: "Um ativo por vez.",
+      portfolio("arca", "ARCA", "classic", [100, 110, 120, 130], 0.125, { author: "Thiago Nigro (Primo Rico)", summary: "Quatro quadrantes de 25%." }),
+      portfolio("momentum-dual", "Momentum dual (GEM)", "classic", [null, 100, 95, 140], 0.158, {
         rule: "Decide no fechamento de cada mês.",
         rebalance: "monthly",
         components: [],
         universe: ["Ações dos EUA (VTI)", "Títulos dos EUA (BND)"],
-      },
+        start: "2020-12-01",
+      }),
+      portfolio("renda-dividendos", "Renda de dividendos", "profile", [100, 104, 108, 112], 0.131),
+      portfolio("estabilidade", "Estabilidade", "profile", [100, 102, 104, 106], 0.109, { metrics: metrics(0.109, -0.05) }),
+      portfolio("crescimento", "Crescimento", "profile", [100, 115, 130, 150], 0.151),
+      portfolio("swing-alto-risco", "Swing em ativos voláteis", "profile", [100, 120, 90, 160], 0.24, { rebalance: "daily", components: [] }),
     ],
     benchmarks: [
-      series("cdi", "CDI", [100, 105, 108, 110], 0.101),
-      series("ibovespa", "Ibovespa (BOVA11)", [100, 90, 110, 120], 0.104),
-      series("sp500", "S&P 500 em reais (IVVB11)", [100, 120, 140, 160], 0.212),
+      { id: "cdi", name: "CDI", equity: [100, 105, 108, 110], drawdown: [0, 0, 0, 0], metrics: metrics(0.101, 0), metrics_common: metrics(0.1, 0), annual_returns: annual },
+      { id: "ibovespa", name: "Ibovespa (BOVA11)", equity: [100, 90, 110, 120], drawdown: [0, -0.1, 0, 0], metrics: metrics(0.104, -0.4), metrics_common: metrics(0.098, -0.4), annual_returns: annual },
+      { id: "sp500", name: "S&P 500 em reais (IVVB11)", equity: [100, 120, 140, 160], drawdown: [0, 0, 0, 0], metrics: metrics(0.212, -0.3), metrics_common: metrics(0.213, -0.3), annual_returns: annual },
+    ],
+    profiles: [
+      profile("renda-dividendos"),
+      profile("estabilidade", ["arca", "momentum-dual"]),
+      profile("crescimento", ["momentum-dual"]),
+      profile("swing-alto-risco", [], true),
     ],
   };
 }

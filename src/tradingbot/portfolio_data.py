@@ -9,11 +9,30 @@ import requests
 from tradingbot.data import DataError, get_prices
 
 BRL_PAIR = "BRL=X"
-BRL_TICKERS = {"BOVA11": "BOVA11.SA", "IVVB11": "IVVB11.SA"}
-USD_TICKERS = ("VTI", "VBR", "VXUS", "EFA", "VNQ", "TLT", "IEF", "SHY", "BND", "GLD", "DBC")
-# FIIs grandes e antigos (todos com histórico desde antes de 2014); quem falhar é pulado
-FII_BASKET = ("HGLG11.SA", "KNRI11.SA", "MXRF11.SA", "HGRE11.SA", "BRCR11.SA", "VISC11.SA")
-MIN_FII = 3
+CALENDAR_TICKER = "^BVSP"  # os pregões da B3 desde 1993 definem o calendário
+BRL_TICKERS = {
+    "BOVA11": "BOVA11.SA", "IVVB11": "IVVB11.SA", "BBAS3": "BBAS3.SA", "ITUB4": "ITUB4.SA",
+    "TAEE11": "TAEE11.SA", "VIVT3": "VIVT3.SA", "PETR4": "PETR4.SA", "VALE3": "VALE3.SA",
+}
+USD_TICKERS = (
+    "VTI", "VBR", "VXUS", "EFA", "VNQ", "TLT", "IEF", "SHY", "BND", "GLD", "DBC",
+    "QQQ", "SCHD", "VYM", "KO", "PG", "JNJ", "PEP", "NVDA", "TSLA", "AMD", "NFLX", "META", "AMZN",
+)
+# Antes de o instrumento existir, um substituto parecido preenche o passado (escalado para coincidir no primeiro dia real).
+# O substituto não tem as taxas do ETF e, no caso do índice, nem os proventos: é uma aproximação, avisada no painel.
+PROXIES: dict[str, tuple[str, bool]] = {  # instrumento -> (ticker do substituto, está em dólar)
+    "BOVA11": (CALENDAR_TICKER, False),
+    "IVVB11": ("SPY", True),
+    "VXUS": ("EFA", True),
+    "BND": ("AGG", True),
+    "GLD": ("GC=F", True),
+    "SCHD": ("DVY", True),
+    "VYM": ("DVY", True),
+}
+# FIIs grandes e antigos; o Yahoo só tem histórico da maioria a partir de 2014. Quem falhar é pulado.
+FII_BASKET = ("HGLG11.SA", "KNRI11.SA", "MXRF11.SA", "HGRE11.SA", "BRCR11.SA", "VISC11.SA", "RNGO11.SA", "BTLG11.SA", "KNCR11.SA")
+GAP_DAYS = 5  # buracos de até uma semana nos dados do Yahoo (um dia sem cotação) são preenchidos com o dia anterior
+MIN_FII = 3  # a cesta só começa no primeiro dia em que há pelo menos este número de fundos
 BCB_CDI = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados?formato=json&dataInicial={}&dataFinal={}"
 BCB_WINDOW_DAYS = 3000  # a API recusa janelas de mais de 10 anos
 
@@ -58,7 +77,7 @@ def fetch_cdi(start: date, end: date, http_get: Callable = requests.get) -> pd.S
 
 
 def fii_basket(get_close: Callable[[str], pd.Series]) -> pd.Series:
-    """Índice (começa em 1) da média dos retornos diários dos FIIs que têm dado em cada dia."""
+    """Índice (começa em 1) da média dos retornos diários dos FIIs que têm dado em cada dia, a partir do primeiro dia com MIN_FII fundos."""
     closes = []
     for ticker in FII_BASKET:
         try:
@@ -67,10 +86,26 @@ def fii_basket(get_close: Callable[[str], pd.Series]) -> pd.Series:
             continue
     if len(closes) < MIN_FII:
         raise DataError(f"A cesta de FIIs precisa de pelo menos {MIN_FII} fundos com dados (vieram {len(closes)}).")
-    returns = pd.concat(closes, axis=1).sort_index().pct_change(fill_method=None)
-    daily = returns.mean(axis=1, skipna=True).dropna()  # o 1º dia não tem retorno
-    start = min(c.index[0] for c in closes)
-    return pd.concat([pd.Series([1.0], index=[start]), (1 + daily).cumprod()])
+    prices = pd.concat(closes, axis=1).sort_index()
+    enough = prices.notna().sum(axis=1) >= MIN_FII
+    start = enough.idxmax()
+    prices = prices.loc[start:]
+    daily = prices.pct_change(fill_method=None).mean(axis=1, skipna=True).iloc[1:]
+    return pd.concat([pd.Series([1.0], index=[start]), (1 + daily.fillna(0)).cumprod()])
+
+
+def splice(real: pd.Series, proxy: pd.Series) -> pd.Series:
+    """Série real com o passado preenchido pelo substituto, escalado para igualar a real no primeiro dia dela. Sem sobreposição, devolve a real."""
+    valid = real.dropna()
+    if valid.empty:
+        return real
+    first = valid.index[0]
+    at_first = proxy.loc[:first].dropna()
+    if at_first.empty or at_first.iloc[-1] == 0:
+        return real
+    ratio = valid.iloc[0] / at_first.iloc[-1]
+    head = (proxy.loc[proxy.index < first].dropna() * ratio).reindex(real.index[real.index < first])
+    return pd.concat([head.dropna(), real.loc[first:]]).reindex(real.index)
 
 
 def _default_close(start: date, end: date) -> Callable[[str], pd.Series]:
@@ -86,22 +121,29 @@ def build_price_table(
     get_close: Callable[[str], pd.Series] | None = None,
     get_cdi: Callable[[date, date], pd.Series] | None = None,
 ) -> pd.DataFrame:
-    """Tabela diária em reais, no calendário da B3, com uma coluna por instrumento. Antes do primeiro dado de um instrumento a coluna fica vazia."""
+    """Tabela diária em reais, no calendário da B3, com uma coluna por instrumento. Antes do primeiro dado de um instrumento (e do substituto) a coluna fica vazia."""
     get_close = get_close or _default_close(start, end)
     get_cdi = get_cdi or fetch_cdi
-    calendar = get_close(BRL_TICKERS["BOVA11"]).index
+    calendar = get_close(CALENDAR_TICKER).index
     fx = get_close(BRL_PAIR)
+
+    def to_calendar(series: pd.Series, usd: bool) -> pd.Series:
+        union = calendar.union(series.index).union(fx.index)
+        values = series.reindex(union).ffill()
+        if usd:
+            values = values * fx.reindex(union).ffill()
+        return values.reindex(calendar)
+
     columns: dict[str, pd.Series] = {}
-    for name, ticker in BRL_TICKERS.items():
-        columns[name] = get_close(ticker).reindex(calendar)
+    wanted = [(name, ticker, False) for name, ticker in BRL_TICKERS.items()] + [(name, name, True) for name in USD_TICKERS]
+    for name, ticker, usd in wanted:
+        real = get_close(ticker).reindex(calendar).ffill(limit=GAP_DAYS) if not usd else to_calendar(get_close(ticker), True)
+        if name in PROXIES:
+            proxy_ticker, proxy_usd = PROXIES[name]
+            real = splice(real, to_calendar(get_close(proxy_ticker), proxy_usd))
+        columns[name] = real
     basket = fii_basket(get_close)
     columns["FII"] = basket.reindex(calendar.union(basket.index)).ffill().reindex(calendar)
-    for name in USD_TICKERS:
-        usd = get_close(name)
-        union = calendar.union(usd.index).union(fx.index)
-        converted = usd.reindex(union).ffill() * fx.reindex(union).ffill()
-        columns[name] = converted.reindex(calendar)
-    cdi = get_cdi(start, end)
-    cdi_index = cdi.cumprod()
+    cdi_index = get_cdi(start, end).cumprod()
     columns["CDI"] = cdi_index.reindex(calendar.union(cdi_index.index)).ffill().reindex(calendar)
     return pd.DataFrame(columns, index=calendar)

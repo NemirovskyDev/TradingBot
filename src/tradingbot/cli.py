@@ -205,9 +205,9 @@ def build_parser() -> argparse.ArgumentParser:
     ex.add_argument("--out", default="web/public/data")
     ex.add_argument("--config", default="config.toml")
     ex.add_argument("--catalog", default=str(DEFAULT_PATH))
-    ex.add_argument("--start", default="2010-01-01")
+    ex.add_argument("--start", default="1970-01-01", help="início do histórico de cada ativo; o Yahoo devolve desde o primeiro pregão que tiver")
     ex.add_argument("--end", default=date.today().isoformat())
-    ex.add_argument("--history-start", default="2004-01-01", help="início do histórico baixado para as carteiras (as regras de tendência precisam de anos de aquecimento)")
+    ex.add_argument("--history-start", default="1990-01-01", help="início do histórico baixado para as carteiras (as regras de tendência precisam de anos de aquecimento)")
     ex.add_argument("--limit", type=int, default=0, help="só os N primeiros ativos do catálogo (para testar)")
     ex.set_defaults(func=_cmd_export)
 

@@ -21,12 +21,15 @@
 .swatch-dashed {
   border-top: 2px dashed var(--benchmark);
 }
-.swatch-dotted {
-  border-top: 2px dotted var(--benchmark);
+.swatch-ref-cdi {
+  border-top: 2px dashed var(--ref-cdi);
 }
-.swatch-large-dashed {
-  border-top: 2px dashed var(--benchmark);
-  border-image: repeating-linear-gradient(90deg, var(--benchmark) 0 8px, transparent 8px 12px) 1;
+.swatch-ref-ibov {
+  border-top: 2px dotted var(--ref-ibov);
+}
+.swatch-ref-sp {
+  border-top: 2px solid transparent;
+  border-image: repeating-linear-gradient(90deg, var(--ref-sp) 0 8px, transparent 8px 12px) 1;
 }
 .chart-note {
   margin: 0 0 var(--space-2);

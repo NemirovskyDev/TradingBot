@@ -83,3 +83,33 @@ def test_get_prices_rejects_bad_dates(tmp_path, bad):
 def test_get_prices_rejects_ticker_with_trailing_newline(tmp_path):
     with pytest.raises(DataError):
         get_prices("AAPL\n", "2024-01-01", "2024-02-01", cache_dir=tmp_path, fetch=lambda t, s, e: _raw())
+
+
+def test_a_very_old_start_that_yahoo_refuses_falls_back_to_the_maximum_history():
+    from tradingbot.data import _yfinance_fetch
+
+    idx_full = pd.bdate_range("2014-09-17", periods=500)
+    full = pd.DataFrame({"Close": range(500)}, index=idx_full)
+    calls = []
+
+    def download(ticker, **kwargs):
+        calls.append(kwargs)
+        if "period" in kwargs:
+            return full
+        return full.iloc[:29]  # o Yahoo devolve só 29 barras para o início de 1970
+
+    out = _yfinance_fetch("BTC-USD", "1970-01-01", "2026-10-28", download=download)
+    assert len(out) == 500 and calls[1]["period"] == "max"
+
+
+def test_a_short_range_does_not_trigger_the_fallback():
+    from tradingbot.data import _yfinance_fetch
+
+    calls = []
+
+    def download(ticker, **kwargs):
+        calls.append(kwargs)
+        return pd.DataFrame({"Close": [1.0, 2.0]}, index=pd.bdate_range("2024-01-01", periods=2))
+
+    out = _yfinance_fetch("X", "2024-01-01", "2024-02-01", download=download)
+    assert len(out) == 2 and len(calls) == 1

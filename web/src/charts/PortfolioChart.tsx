@@ -3,16 +3,16 @@ import { useEffect, useRef } from "react";
 import { formatPercent } from "../data/format";
 import type { PortfolioSeries } from "../data/types";
 import { useDrawIn } from "../motion";
-import { baseOptions, chartColors } from "./theme";
+import { baseOptions, chartColors, type ChartColors } from "./theme";
 import "./charts.css";
 
 const HEIGHT = 340;
 
-/** Um estilo de linha por referência: o formato, e não só a cor, separa as linhas (também para quem não distingue cores). */
-const BENCHMARK_STYLES: Record<string, { style: LineStyle; swatch: string }> = {
-  cdi: { style: LineStyle.Dashed, swatch: "swatch-dashed" },
-  ibovespa: { style: LineStyle.Dotted, swatch: "swatch-dotted" },
-  sp500: { style: LineStyle.LargeDashed, swatch: "swatch-large-dashed" },
+/** Cada referência tem cor, formato de linha e rótulo próprios: o formato e o rótulo separam as linhas também para quem não distingue cores. */
+const BENCHMARK_STYLES: Record<string, { style: LineStyle; swatch: string; color: keyof ChartColors; tag: string }> = {
+  cdi: { style: LineStyle.Dashed, swatch: "swatch-ref-cdi", color: "refCdi", tag: "CDI" },
+  ibovespa: { style: LineStyle.Dotted, swatch: "swatch-ref-ibov", color: "refIbov", tag: "Ibov." },
+  sp500: { style: LineStyle.LargeDashed, swatch: "swatch-ref-sp", color: "refSp", tag: "S&P" },
 };
 const FALLBACK_STYLE = BENCHMARK_STYLES.cdi!;
 
@@ -22,14 +22,21 @@ interface PortfolioChartProps {
   benchmarks: PortfolioSeries[];
 }
 
-function points(dates: string[], values: number[]) {
-  return dates.map((time, i) => ({ time, value: values[i]! }));
+/** Rótulo curto para a ponta da linha: sem o parêntese e sem a palavra "Carteira". */
+const shortName = (name: string) => name.split(" (")[0]!.replace(/^Carteira /, "");
+
+/** Pontos a partir do índice `from`, reescalados para valer 100 ali: a carteira e as referências começam juntas, mesmo que a referência exista há mais tempo. */
+function points(dates: string[], values: (number | null)[], from: number) {
+  const base = values[from];
+  if (base == null) return [];
+  return dates.flatMap((time, i) => (i >= from && values[i] != null ? [{ time, value: (values[i]! * 100) / base }] : []));
 }
 
 /** Valor de R$ 100 investidos no início: a carteira escolhida contra as referências. */
 export function PortfolioChart({ dates, selected, benchmarks }: PortfolioChartProps) {
   const host = useRef<HTMLDivElement>(null);
   useDrawIn(host, selected.id);
+  const from = selected.equity.findIndex((v) => v !== null);
 
   useEffect(() => {
     const el = host.current;
@@ -42,14 +49,14 @@ export function PortfolioChart({ dates, selected, benchmarks }: PortfolioChartPr
       width: el.clientWidth,
     });
     for (const b of benchmarks) {
-      const { style } = BENCHMARK_STYLES[b.id] ?? FALLBACK_STYLE;
+      const { style, color, tag } = BENCHMARK_STYLES[b.id] ?? FALLBACK_STYLE;
       chart
-        .addLineSeries({ color: colors.benchmark, lineWidth: 2, lineStyle: style, priceLineVisible: false, lastValueVisible: false })
-        .setData(points(dates, b.equity) as never);
+        .addLineSeries({ color: colors[color], lineWidth: 2, lineStyle: style, priceLineVisible: false, title: tag })
+        .setData(points(dates, b.equity, from) as never);
     }
     chart
-      .addLineSeries({ color: colors.action, lineWidth: 3, priceLineVisible: false })
-      .setData(points(dates, selected.equity) as never);
+      .addLineSeries({ color: colors.action, lineWidth: 3, priceLineVisible: false, title: shortName(selected.name) })
+      .setData(points(dates, selected.equity, from) as never);
     chart.timeScale().fitContent();
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => chart.applyOptions({ width: el.clientWidth }));
     observer?.observe(el);
@@ -57,9 +64,9 @@ export function PortfolioChart({ dates, selected, benchmarks }: PortfolioChartPr
       observer?.disconnect();
       chart.remove();
     };
-  }, [dates, selected, benchmarks]);
+  }, [dates, selected, benchmarks, from]);
 
-  const last = selected.equity[selected.equity.length - 1]!;
+  const last = selected.equity.filter((v): v is number => v !== null).at(-1)!;
   return (
     <div className="portfolio-chart">
       <ul className="legend" aria-label="Legenda do gráfico">

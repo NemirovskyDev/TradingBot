@@ -12,6 +12,38 @@
   align-items: center;
   gap: var(--space-1) var(--space-2);
 }
+.detail h2:focus {
+  outline: none; /* o foco vai ao título só para o leitor de tela e o teclado seguirem dali; sem anel num título */
+}
+.portfolios .sortable tr.pickable {
+  cursor: pointer;
+}
+.portfolios .sortable tr.pickable:hover {
+  background: var(--action-wash);
+}
+.portfolios .sortable tr.is-selected {
+  background: var(--action-wash);
+}
+.row-pick {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.row-pick[aria-pressed="true"] {
+  color: var(--action);
+}
+.row-pick:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.name-cell .swatch {
+  flex: none;
+}
 .badge-quiet {
   background: var(--raised);
   color: var(--ink-soft);
@@ -165,4 +197,176 @@
   .compare-scroll {
     overflow-x: visible; /* no celular a tabela vira cartões e cabe na largura */
   }
+}
+
+/* na tabela larga o nome fica numa linha só (a tabela rola dentro do painel se faltar espaço) */
+@media (min-width: 768px) {
+  .portfolios .sortable td:first-child {
+    white-space: nowrap;
+  }
+  .portfolios .name-cell {
+    flex-wrap: nowrap;
+  }
+}
+
+/* ---------- escolha de objetivo ---------- */
+.goals legend {
+  font-size: var(--text-base);
+  color: var(--ink);
+  font-weight: 650;
+}
+.goal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-3);
+}
+.goal {
+  position: relative;
+  display: block;
+}
+.goal input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.goal-card {
+  display: grid;
+  gap: var(--space-1);
+  height: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-soft);
+  transition: background-color 120ms ease-out, border-color 120ms ease-out;
+}
+.goal-card strong {
+  color: var(--ink);
+  font-size: var(--text-base);
+}
+.goal:hover .goal-card {
+  border-color: var(--action);
+}
+.goal input:checked + .goal-card {
+  border-color: var(--action);
+  background: var(--action-wash);
+}
+.goal input:checked + .goal-card strong {
+  color: var(--action);
+}
+.goal input:focus-visible + .goal-card {
+  outline: 2px solid var(--action);
+  outline-offset: 2px;
+}
+.profile-panel {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.profile-panel h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+.profile-panel p {
+  margin: 0;
+  max-width: 68ch;
+}
+.profile-panel .reading {
+  font-weight: 600;
+}
+.profile-warning {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--loss-wash);
+}
+.profile-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.button-quiet {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.button-quiet:hover {
+  border-color: var(--action);
+  color: var(--action);
+}
+.related ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.related li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+.related-title {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+.related-metrics {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+.chip-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--action);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ---------- janela de comparação e grupos de chips ---------- */
+.mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  border: 0;
+}
+.mode label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  cursor: pointer;
+}
+.mode-note {
+  margin: 0 0 var(--space-3);
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  max-width: 68ch;
+}
+.chips-title {
+  margin: var(--space-3) 0 var(--space-2);
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+.chips-title:first-of-type {
+  margin-top: 0;
 }

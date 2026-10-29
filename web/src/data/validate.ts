@@ -7,6 +7,8 @@ import type {
   PortfolioData,
   PortfolioMetrics,
   PortfolioSeries,
+  Profile,
+  ReferenceSummary,
   Price,
   Run,
   RunIndex,
@@ -246,20 +248,31 @@ function parseAnnual(v: unknown, p: string): AnnualReturn {
   return { year: num(r.year, `${p}.year`), return: nullableNum(r.return, `${p}.return`), partial: bool(r.partial, `${p}.partial`) };
 }
 
+function parseReference(v: unknown, p: string): ReferenceSummary {
+  const r = rec(v, p);
+  return {
+    metrics: parsePortfolioMetrics(r.metrics, `${p}.metrics`),
+    annual_returns: list(r.annual_returns, `${p}.annual_returns`, parseAnnual),
+  };
+}
+
 function parsePortfolioSeries(v: unknown, p: string, points: number): PortfolioSeries {
   const r = rec(v, p);
   const series = (key: "equity" | "drawdown") => {
-    const values = list(r[key], `${p}.${key}`, num);
+    const values = list(r[key], `${p}.${key}`, nullableNum);
     // o gráfico pareia cada valor com a data de mesmo índice: tamanhos diferentes embaralhariam a curva
     if (values.length !== points) fail(`${p}.${key}`, `${points} valores, um por data`);
     return values;
   };
+  const equity = series("equity");
+  if (!equity.some((x) => x !== null)) fail(`${p}.equity`, "pelo menos um valor");
   return {
     id: str(r.id, `${p}.id`),
     name: str(r.name, `${p}.name`),
-    equity: series("equity"),
+    equity,
     drawdown: series("drawdown"),
     metrics: parsePortfolioMetrics(r.metrics, `${p}.metrics`),
+    metrics_common: parsePortfolioMetrics(r.metrics_common, `${p}.metrics_common`),
     annual_returns: list(r.annual_returns, `${p}.annual_returns`, parseAnnual),
   };
 }
@@ -267,9 +280,13 @@ function parsePortfolioSeries(v: unknown, p: string, points: number): PortfolioS
 function parsePortfolio(v: unknown, p: string, points: number): Portfolio {
   const r = rec(v, p);
   const rebalance = r.rebalance;
-  if (rebalance !== "yearly" && rebalance !== "monthly") fail(`${p}.rebalance`, '"yearly" ou "monthly"');
+  if (rebalance !== "yearly" && rebalance !== "monthly" && rebalance !== "daily") fail(`${p}.rebalance`, "yearly, monthly ou daily");
+  const kind = r.kind;
+  if (kind !== "classic" && kind !== "profile") fail(`${p}.kind`, "classic ou profile");
+  const benchmarks = rec(r.benchmarks, `${p}.benchmarks`);
   return {
     ...parsePortfolioSeries(v, p, points),
+    kind,
     author: str(r.author, `${p}.author`),
     summary: str(r.summary, `${p}.summary`),
     rule: str(r.rule, `${p}.rule`),
@@ -279,15 +296,33 @@ function parsePortfolio(v: unknown, p: string, points: number): Portfolio {
       return { label: str(c.label, `${q}.label`), weight: num(c.weight, `${q}.weight`) };
     }),
     universe: list(r.universe, `${p}.universe`, str),
+    start: isoDate(r.start, `${p}.start`),
+    benchmarks: Object.fromEntries(Object.entries(benchmarks).map(([k, x]) => [k, parseReference(x, `${p}.benchmarks.${k}`)])),
   };
 }
 
+function parseProfile(v: unknown, p: string): Profile {
+  const r = rec(v, p);
+  return {
+    id: str(r.id, `${p}.id`),
+    name: str(r.name, `${p}.name`),
+    tagline: str(r.tagline, `${p}.tagline`),
+    expect: str(r.expect, `${p}.expect`),
+    warning: str(r.warning, `${p}.warning`),
+    portfolio_id: str(r.portfolio_id, `${p}.portfolio_id`),
+    related_ids: list(r.related_ids, `${p}.related_ids`, str),
+    runs_link: bool(r.runs_link, `${p}.runs_link`),
+  };
+}
+
+const PORTFOLIO_SCHEMA = 2;
+
 export function parsePortfolios(json: unknown): PortfolioData {
   const r = rec(json, "carteiras");
-  if (r.schema !== SUPPORTED_SCHEMA) {
-    throw new DataError(`Versão dos dados incompatível: o painel espera a versão ${SUPPORTED_SCHEMA}, recebeu ${String(r.schema)}.`);
+  if (r.schema !== PORTFOLIO_SCHEMA) {
+    throw new DataError(`Versão dos dados incompatível: o painel espera a versão ${PORTFOLIO_SCHEMA}, recebeu ${String(r.schema)}.`);
   }
-  if (r.currency !== "BRL") fail("currency", '"BRL"');
+  if (r.currency !== "BRL") fail("currency", "BRL");
   const dates = list(r.dates, "dates", isoDate);
   if (dates.length < 2) fail("dates", "pelo menos duas datas");
   ascendingDates(dates.map((date) => ({ date })), "dates");
@@ -295,15 +330,26 @@ export function parsePortfolios(json: unknown): PortfolioData {
   if (portfolios.length === 0) fail("portfolios", "pelo menos uma carteira");
   const benchmarks = list(r.benchmarks, "benchmarks", (x, p) => parsePortfolioSeries(x, p, dates.length));
   uniqueSafeIds([...portfolios, ...benchmarks].map((x) => x.id), "portfolios");
+  const ids = new Set(portfolios.map((x) => x.id));
+  const profiles = list(r.profiles, "profiles", parseProfile);
+  profiles.forEach((p, i) => {
+    // um perfil que aponta para uma carteira inexistente abriria uma tela vazia
+    if (!ids.has(p.portfolio_id)) fail(`profiles[${i}].portfolio_id`, "o id de uma carteira existente");
+    p.related_ids.forEach((id, j) => {
+      if (!ids.has(id)) fail(`profiles[${i}].related_ids[${j}]`, "o id de uma carteira existente");
+    });
+  });
   return {
-    schema: SUPPORTED_SCHEMA,
+    schema: PORTFOLIO_SCHEMA,
     currency: "BRL",
     generated_at: isoDate(r.generated_at, "generated_at"),
     start: isoDate(r.start, "start"),
+    common_start: isoDate(r.common_start, "common_start"),
     end: isoDate(r.end, "end"),
     dates,
     assumptions: list(r.assumptions, "assumptions", str),
     portfolios,
     benchmarks,
+    profiles,
   };
 }

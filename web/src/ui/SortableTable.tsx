@@ -22,12 +22,15 @@ interface SortableTableProps<T> {
   getKey: (row: T) => string;
   caption: string;
   initialSort?: Sort;
+  /** Clique na linha inteira (o teclado usa o botão dentro da linha, que dispara o mesmo clique). */
+  onRowClick?: (row: T) => void;
+  rowClassName?: (row: T) => string | undefined;
 }
 
 const ARIA_SORT = { asc: "ascending", desc: "descending" } as const;
 const DIR_WORD = { asc: "crescente", desc: "decrescente" } as const;
 
-export function SortableTable<T>({ columns, rows, getKey, caption, initialSort }: SortableTableProps<T>) {
+export function SortableTable<T>({ columns, rows, getKey, caption, initialSort, onRowClick, rowClassName }: SortableTableProps<T>) {
   const [sort, setSort] = useState<Sort | null>(initialSort ?? null);
   const selectId = useId();
 
@@ -109,7 +112,7 @@ export function SortableTable<T>({ columns, rows, getKey, caption, initialSort }
         </thead>
         <tbody role="rowgroup">
           {sorted.map((row, i) => (
-            <tr key={keys[i]} role="row">
+            <tr key={keys[i]} role="row" className={rowClassName?.(row)} onClick={onRowClick ? () => onRowClick(row) : undefined}>
               {columns.map((c) => (
                 <td
                   key={c.key}

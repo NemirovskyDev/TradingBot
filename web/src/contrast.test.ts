@@ -50,6 +50,10 @@ test("the dashed benchmark line is at least 3:1 against the chart background (no
   expect(contrast(token("benchmark"), token("surface"))).toBeGreaterThanOrEqual(3);
 });
 
+test.each(["ref-cdi", "ref-ibov", "ref-sp"])("chart line --%s is at least 3:1 against the surface (non-text)", (name) => {
+  expect(contrast(token(name), token("surface"))).toBeGreaterThanOrEqual(3);
+});
+
 test("control borders are at least 3:1 against the surface (non-text)", () => {
   expect(contrast(token("line-strong"), token("surface"))).toBeGreaterThanOrEqual(3);
 });
