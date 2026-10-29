@@ -11,7 +11,7 @@ from tradingbot.config import CostConfig, RiskConfig
 
 @dataclass(frozen=True)
 class PromotionCriteria:
-    min_trades: int = 30
+    min_trades: int = 10  # tendência opera pouco (2 a 5 vezes em 2 anos); abaixo de 10 o resultado é estatisticamente fraco
     max_drawdown: float = 0.25
 
 
