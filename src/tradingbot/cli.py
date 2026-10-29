@@ -15,7 +15,7 @@ from tradingbot.evaluate import Evaluation, PromotionCriteria, evaluate_detailed
 from tradingbot.export import export_run, publish, write_index
 from tradingbot.export_portfolios import export_portfolios
 from tradingbot.export_real import MAX_SKIPPED_FRACTION, export_real, strategy_params
-from tradingbot.portfolio_data import build_price_table
+from tradingbot.portfolio_data import build_price_table, stock_pool
 from tradingbot.strategies import STRATEGIES
 
 DISCLAIMER = "Simulação com dados históricos. Não é recomendação de investimento."
@@ -109,9 +109,10 @@ def _cmd_export(args: argparse.Namespace) -> int:
 def _export_portfolios(args: argparse.Namespace) -> int:
     """Baixa os instrumentos das carteiras, roda as metodologias e grava portfolios.json (o arquivo antigo fica se algo falhar)."""
     try:
-        table = build_price_table(date.fromisoformat(args.history_start), date.fromisoformat(args.end))
+        pool = stock_pool(load_catalog(Path(args.catalog)))
+        table = build_price_table(date.fromisoformat(args.history_start), date.fromisoformat(args.end), pool=pool)
         path = export_portfolios(table, Path(args.out))
-    except ValueError as exc:  # datas inválidas ou sem janela comum
+    except (FileNotFoundError, ValueError) as exc:  # catálogo ausente, datas inválidas ou sem janela comum
         print(f"Erro nas carteiras (nada foi gravado): {exc}", file=sys.stderr)
         return 2
     print(f"Carteiras gravadas em {path}")

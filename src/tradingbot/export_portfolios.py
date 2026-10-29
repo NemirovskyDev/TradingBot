@@ -10,7 +10,9 @@ import pandas as pd
 from tradingbot.portfolio import (
     ALL_PORTFOLIOS,
     LABELS,
+    POOL_PREFIX,
     REBALANCE_COST,
+    SELECT_N,
     annual_returns,
     drawdown,
     metrics,
@@ -33,7 +35,8 @@ ASSUMPTIONS = (
     "Preços do Yahoo Finance; o caixa é o CDI do Banco Central. Os FIIs já vêm com os proventos, mas o Yahoo só tem o histórico da maioria deles a partir de 2014.",
     "O Yahoo não traz os proventos do BOVA11 nem do índice: o Ibovespa e a fatia de ações brasileiras ficam um pouco abaixo do real.",
     "Os FIIs são uma cesta de fundos grandes que existem hoje, o que favorece o resultado (viés de sobrevivência).",
-    "Os ativos dos exemplos por perfil (dividendos, crescimento e swing) foram escolhidos hoje, sabendo quais prosperaram: o resultado é otimista e não mostra o que alguém teria conseguido escolhendo na época.",
+    "Os ativos dos exemplos de dividendos e de crescimento foram escolhidos hoje, sabendo quais prosperaram: o resultado é otimista e não mostra o que alguém teria conseguido escolhendo na época.",
+    "O swing escolhe as ações a cada mês por uma regra, com dados só até aquele dia, mas sai de um catálogo de empresas que existem hoje: quem faliu ou deixou a bolsa não está lá, e isso ainda favorece o resultado.",
     "Simulação com dados passados: não é recomendação e não garante resultado futuro.",
 )
 
@@ -63,6 +66,7 @@ def build_payload(table: pd.DataFrame, start: pd.Timestamp | None) -> dict:
     if sample[-1] != window.index[-1]:
         sample = sample.append(window.index[-1:])
     cash = table["CDI"]
+    pool_size = sum(c.startswith(POOL_PREFIX) for c in table.columns)
 
     portfolios = []
     for m in ALL_PORTFOLIOS:
@@ -82,7 +86,8 @@ def build_payload(table: pd.DataFrame, start: pd.Timestamp | None) -> dict:
                 "rule": m.rule,
                 "rebalance": m.rebalance,
                 "components": [{"label": LABELS[k], "weight": w} for k, w in (m.weights or ())],
-                "universe": [LABELS[k] for k in m.universe],
+                "universe": [LABELS[k] for k in m.universe]
+                + ([f"{pool_size} ações dos EUA e da B3 do catálogo (as {SELECT_N} mais fortes em 12 meses, a cada mês)"] if m.pool else []),
                 "start": str(begin.date()),
                 "equity": _padded(equity, sample, 4),
                 "drawdown": _padded(drawdown(equity), sample, 6),

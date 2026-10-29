@@ -11,8 +11,8 @@ from tradingbot.portfolio import ALL_PORTFOLIOS
 INSTRUMENTS = (
     "BOVA11", "IVVB11", "FII", "VTI", "VBR", "VXUS", "EFA", "VNQ", "TLT", "IEF", "SHY", "BND", "GLD", "DBC",
     "QQQ", "SCHD", "VYM", "KO", "PG", "JNJ", "PEP", "BBAS3", "ITUB4", "TAEE11", "VIVT3",
-    "NVDA", "TSLA", "AMD", "NFLX", "META", "AMZN", "PETR4", "VALE3",
 )
+POOL = tuple(f"P:S{i:02d}" for i in range(25))  # universo de ações do swing
 
 
 def _table(years=6):
@@ -20,7 +20,7 @@ def _table(years=6):
     idx = pd.bdate_range("2010-01-04", periods=252 * years)
     rng = np.random.default_rng(7)
     cols = {}
-    for name in INSTRUMENTS:
+    for name in INSTRUMENTS + POOL:
         cols[name] = 100 * np.cumprod(1 + rng.normal(0.0003, 0.01, len(idx)))
     cols["CDI"] = np.cumprod(np.full(len(idx), 1.0004))
     return pd.DataFrame(cols, index=idx)
@@ -125,8 +125,23 @@ def test_payload_has_the_four_profiles_pointing_at_real_portfolios_and_related_o
 
 def test_the_swing_portfolio_holds_cash_when_nothing_has_broken_out():
     table = _table()
-    for name in ("NVDA", "TSLA", "AMD", "NFLX", "META", "AMZN", "PETR4", "VALE3"):
+    for name in POOL:
         table[name] = 100.0  # preço parado: nenhum rompimento
     payload = build_payload(table, table.index[252 * 2])
     swing = next(p for p in payload["portfolios"] if p["id"] == "swing-alto-risco")
     assert swing["metrics"]["total_return"] == pytest.approx(swing["benchmarks"]["cdi"]["metrics"]["total_return"], rel=1e-3)
+
+
+def test_the_swing_portfolio_describes_its_stock_universe_and_the_survivorship_caveat():
+    table = _table()
+    payload = build_payload(table, None)
+    swing = next(p for p in payload["portfolios"] if p["id"] == "swing-alto-risco")
+    assert swing["universe"][0] == "Caixa (CDI)" and "25 ações" in swing["universe"][1]
+    assert swing["components"] == [] and "8 ações" in swing["rule"]
+    assert any("swing" in a.lower() and "existem hoje" in a for a in payload["assumptions"])
+
+
+def test_a_table_without_enough_stocks_for_the_swing_is_an_error_not_a_pure_cash_portfolio():
+    table = _table().drop(columns=list(POOL))
+    with pytest.raises(ValueError, match="ações"):
+        build_payload(table, None)

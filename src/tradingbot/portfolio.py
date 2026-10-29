@@ -12,6 +12,11 @@ import pandas as pd
 REBALANCE_COST = 0.001  # 0,1% do valor negociado em cada rebalanceamento (corretagem e spread); sem imposto
 TRADING_DAYS = 252
 
+POOL_PREFIX = "P:"  # as colunas da tabela com este prefixo formam o universo de ações de onde o swing escolhe
+SELECT_N = 8  # quantas ações o swing segura ao mesmo tempo
+MOMENTUM_DAYS = 252  # janela do ranking: cerca de 12 meses de pregões
+MIN_POOL = 20  # o swing só começa quando pelo menos este número de ações já tem preço
+
 Target = Callable[[pd.Timestamp, pd.DataFrame], dict[str, float]]
 
 LABELS: dict[str, str] = {
@@ -41,14 +46,6 @@ LABELS: dict[str, str] = {
     "ITUB4": "Itaú (ITUB4)",
     "TAEE11": "Taesa (TAEE11)",
     "VIVT3": "Vivo (VIVT3)",
-    "NVDA": "Nvidia (NVDA)",
-    "TSLA": "Tesla (TSLA)",
-    "AMD": "AMD (AMD)",
-    "NFLX": "Netflix (NFLX)",
-    "META": "Meta (META)",
-    "AMZN": "Amazon (AMZN)",
-    "PETR4": "Petrobras (PETR4)",
-    "VALE3": "Vale (VALE3)",
 }
 
 
@@ -182,34 +179,56 @@ def gem_target(us: str, ex_us: str, bonds: str, cash: str) -> Target:
     return target
 
 
-def breakout_target(assets: tuple[str, ...], cash: str, entry: int = 55, exit_: int = 20) -> Target:
-    """Donchian sobre fechamentos: cada ativo entra ao passar da máxima de `entry` dias e sai abaixo da mínima de `exit_` dias; a fatia dos que estão fora vai para o caixa.
-    Guarda o estado entre chamadas (o simulador chama dia a dia), então cada dia novo custa só a janela, não o histórico todo."""
-    state = {"pos": 0, "held": dict.fromkeys(assets, False)}
+def top_by_momentum(history: pd.DataFrame, n: int, lookback: int = MOMENTUM_DAYS) -> list[str]:
+    """As `n` ações do universo (colunas P:) com maior retorno nos últimos `lookback` pregões, só entre as que têm preço em toda a janela.
+    Empate: ordem do nome. Com menos elegíveis que vagas, devolve todas; sem `lookback` pregões de histórico, devolve vazio."""
+    window = history[[c for c in history.columns if c.startswith(POOL_PREFIX)]].iloc[-(lookback + 1) :]
+    if len(window) < lookback + 1:
+        return []
+    window = window.dropna(axis=1)
+    returns = window.iloc[-1] / window.iloc[0] - 1
+    return [name for name, _ in sorted(returns.items(), key=lambda item: (-item[1], item[0]))[:n]]
 
-    def target(_date: pd.Timestamp, history: pd.DataFrame) -> dict[str, float]:
-        n = len(history)
-        if n < state["pos"]:  # outra simulação com a mesma função: recomeça
-            state["pos"], state["held"] = 0, dict.fromkeys(assets, False)
-        pos = state["pos"]
-        base = max(0, pos - entry)
-        for asset in assets:
-            col = history[asset].iloc[base:n].to_numpy(dtype=float)
-            held = state["held"][asset]
-            for i in range(pos - base, n - base):
-                close = col[i]
-                high = col[max(0, i - entry) : i]
-                low = col[max(0, i - exit_) : i]
-                if np.isnan(close) or len(high) < entry or np.isnan(high).any() or np.isnan(low).any():
-                    held = False
-                elif not held and close > high.max():
-                    held = True
-                elif held and close < low.min():
-                    held = False
-            state["held"][asset] = held
-        state["pos"] = n
-        share = 1 / len(assets)
-        weights = {a: (share if state["held"][a] else 0.0) for a in assets}
+
+def _donchian_step(values: np.ndarray, held: np.ndarray, first: int, entry: int, exit_: int) -> np.ndarray:
+    """Avança o estado comprado/fora de todas as colunas, linha a linha a partir de `first`: entra ao fechar acima da máxima de
+    `entry` dias, sai abaixo da mínima de `exit_` dias; preço ausente na janela deixa a coluna fora."""
+    for i in range(first, len(values)):
+        close = values[i]
+        if i < entry:
+            held = np.zeros_like(held)
+            continue
+        high, low = values[i - entry : i], values[max(0, i - exit_) : i]
+        valid = ~np.isnan(close) & ~np.isnan(high).any(axis=0) & ~np.isnan(low).any(axis=0)
+        held = valid & np.where(held, ~(close < low.min(axis=0)), close > high.max(axis=0))
+    return held
+
+
+def pool_breakout_target(cash: str, n: int = SELECT_N, lookback: int = MOMENTUM_DAYS, entry: int = 55, exit_: int = 20) -> Target:
+    """Swing sem escolher ativos à mão: no primeiro pregão de cada mês, pega as `n` ações do universo (colunas P:) com maior retorno em
+    `lookback` pregões, com dados só até aquele dia. Todo dia, cada escolhida fica com 1/n da carteira enquanto estiver em rompimento
+    (Donchian `entry`/`exit_` sobre fechamentos); a fatia dos que estão fora vai para o caixa.
+    Guarda o estado entre chamadas (o simulador chama dia a dia): cada dia novo custa só a janela, não o histórico todo."""
+    if exit_ > entry:
+        raise ValueError("A janela de saída não pode ser maior que a de entrada.")
+    state: dict = {"pos": 0, "cols": None, "held": None, "month": None, "selected": []}
+
+    def target(date: pd.Timestamp, history: pd.DataFrame) -> dict[str, float]:
+        rows = len(history)
+        if state["cols"] is None or rows < state["pos"]:  # primeira chamada, ou outra simulação com a mesma função: recomeça
+            cols = [c for c in history.columns if c.startswith(POOL_PREFIX)]
+            state.update(pos=0, cols=cols, held=np.zeros(len(cols), dtype=bool), month=None, selected=[])
+        cols = state["cols"]
+        base = max(0, state["pos"] - entry)
+        values = history.iloc[base:rows][cols].to_numpy(dtype=float)
+        state["held"] = _donchian_step(values, state["held"], state["pos"] - base, entry, exit_)
+        state["pos"] = rows
+        if (date.year, date.month) != state["month"]:
+            state["month"], state["selected"] = (date.year, date.month), top_by_momentum(history, n, lookback)
+        weights = dict.fromkeys(cols, 0.0)
+        for name, held in zip(cols, state["held"]):
+            if held and name in state["selected"]:
+                weights[name] = 1 / n
         weights[cash] = 1.0 - sum(weights.values())
         return weights
 
@@ -230,6 +249,7 @@ class Methodology:
     kind: str = "classic"  # "classic" (metodologia publicada) ou "profile" (exemplo montado pelo projeto para um perfil)
     warmup_days: int = 0  # dias de histórico que as regras de sinal precisam antes do início (o sinal não existe antes disso)
     optional: tuple[str, ...] = ()  # instrumentos que podem faltar no começo: sem preço, ficam fora em vez de adiar o início
+    pool: bool = False  # escolhe entre as ações da tabela (colunas P:) em vez de uma lista fixa; só começa com MIN_POOL ações cotadas
 
 
 def _fixed(
@@ -290,8 +310,6 @@ def _profile(id_: str, name: str, summary: str, rule: str, weights: dict[str, fl
     return Methodology(id_, name, "Exemplo montado pelo projeto", summary, rule, "yearly", tuple(weights), tuple(weights.items()), static_target(weights), "profile")
 
 
-_SWING = ("NVDA", "TSLA", "AMD", "NFLX", "META", "AMZN", "PETR4", "VALE3")
-
 PROFILE_PORTFOLIOS: tuple[Methodology, ...] = (
     _profile(
         "renda-dividendos", "Renda de dividendos",
@@ -312,11 +330,11 @@ PROFILE_PORTFOLIOS: tuple[Methodology, ...] = (
         {"IVVB11": 0.50, "QQQ": 0.25, "BOVA11": 0.25},
     ),
     Methodology(
-        "swing-alto-risco", "Swing em ativos voláteis", "Exemplo montado pelo projeto",
-        "Compra e venda de ativos voláteis em ciclos de dias a semanas, seguindo o rompimento de máximas.",
-        "Confere todo dia: cada um dos 8 ativos fica com 12,5% da carteira enquanto passar da máxima de 55 dias, e sai abaixo da mínima de 20 dias; o que está fora fica em CDI. Cada troca custa 0,1%.",
-        "daily", _SWING + ("CDI",), None, lambda: breakout_target(_SWING, "CDI"), "profile",
-        warmup_days=90, optional=("TSLA", "META"),  # os outros 6 existem desde antes de 2004; sem eles a carteira seria só CDI
+        "swing-alto-risco", "Swing em ações em alta", "Exemplo montado pelo projeto",
+        "Todo mês escolhe, entre as ações dos EUA e da B3 do catálogo, as 8 que mais subiram em 12 meses, e compra e vende por rompimento de máximas em ciclos de dias a semanas.",
+        "Todo mês, com dados só até aquele dia, pega as 8 ações de maior alta em 12 meses. Confere todo dia: cada uma fica com 12,5% da carteira enquanto passar da máxima de 55 dias, e sai abaixo da mínima de 20 dias; o que está fora fica em CDI. Cada troca custa 0,1%.",
+        "daily", ("CDI",), None, lambda: pool_breakout_target("CDI"), "profile",
+        warmup_days=380, pool=True,  # 252 pregões de histórico para o ranking
     ),
 )
 
@@ -324,7 +342,7 @@ ALL_PORTFOLIOS: tuple[Methodology, ...] = METHODOLOGIES + PROFILE_PORTFOLIOS
 
 
 def own_start(table: pd.DataFrame, method: Methodology) -> pd.Timestamp:
-    """Primeiro dia em que a carteira pode começar: todos os instrumentos obrigatórios têm preço, mais o aquecimento do sinal."""
+    """Primeiro dia em que a carteira pode começar: todos os instrumentos obrigatórios têm preço (e, no swing, MIN_POOL ações), mais o aquecimento do sinal."""
     firsts = []
     for name in method.universe:
         if name in method.optional:
@@ -333,6 +351,11 @@ def own_start(table: pd.DataFrame, method: Methodology) -> pd.Timestamp:
         if valid.empty:
             raise ValueError(f"Sem preços para {name}: a carteira {method.name} não tem janela para simular.")
         firsts.append(valid.index[0])
+    if method.pool:
+        listed = sorted(i for i in (table[c].first_valid_index() for c in table.columns if c.startswith(POOL_PREFIX)) if i is not None)
+        if len(listed) < MIN_POOL:
+            raise ValueError(f"Só {len(listed)} ações com preço: a carteira {method.name} precisa de pelo menos {MIN_POOL}.")
+        firsts.append(listed[MIN_POOL - 1])
     first = max(firsts)
     if method.warmup_days:
         later = table.index[table.index >= first + pd.Timedelta(days=method.warmup_days)]

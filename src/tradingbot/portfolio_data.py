@@ -1,23 +1,26 @@
 """Preços das carteiras em reais: ETFs em dólar convertidos pelo câmbio, cesta de FIIs e CDI do Banco Central."""
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import date, timedelta
 
 import pandas as pd
 import requests
 
+from tradingbot.catalog import Asset
 from tradingbot.data import DataError, get_prices
+from tradingbot.portfolio import POOL_PREFIX
 
 BRL_PAIR = "BRL=X"
 CALENDAR_TICKER = "^BVSP"  # os pregões da B3 desde 1993 definem o calendário
 BRL_TICKERS = {
     "BOVA11": "BOVA11.SA", "IVVB11": "IVVB11.SA", "BBAS3": "BBAS3.SA", "ITUB4": "ITUB4.SA",
-    "TAEE11": "TAEE11.SA", "VIVT3": "VIVT3.SA", "PETR4": "PETR4.SA", "VALE3": "VALE3.SA",
+    "TAEE11": "TAEE11.SA", "VIVT3": "VIVT3.SA",
 }
 USD_TICKERS = (
     "VTI", "VBR", "VXUS", "EFA", "VNQ", "TLT", "IEF", "SHY", "BND", "GLD", "DBC",
-    "QQQ", "SCHD", "VYM", "KO", "PG", "JNJ", "PEP", "NVDA", "TSLA", "AMD", "NFLX", "META", "AMZN",
+    "QQQ", "SCHD", "VYM", "KO", "PG", "JNJ", "PEP",
 )
+STOCK_CATEGORIES = ("Ações EUA", "Ações B3")  # de onde o swing escolhe
 # Antes de o instrumento existir, um substituto parecido preenche o passado (escalado para coincidir no primeiro dia real).
 # O substituto não tem as taxas do ETF e, no caso do índice, nem os proventos: é uma aproximação, avisada no painel.
 PROXIES: dict[str, tuple[str, bool]] = {  # instrumento -> (ticker do substituto, está em dólar)
@@ -108,6 +111,11 @@ def splice(real: pd.Series, proxy: pd.Series) -> pd.Series:
     return pd.concat([head.dropna(), real.loc[first:]]).reindex(real.index)
 
 
+def stock_pool(assets: Sequence[Asset]) -> list[tuple[str, str, bool]]:
+    """Universo de ações do swing a partir do catálogo: (nome, ticker no Yahoo, está em dólar)."""
+    return [(a.ticker.removesuffix(".SA"), a.ticker, not a.ticker.endswith(".SA")) for a in assets if a.category in STOCK_CATEGORIES]
+
+
 def _default_close(start: date, end: date) -> Callable[[str], pd.Series]:
     def get_close(ticker: str) -> pd.Series:
         return get_prices(ticker, start.isoformat(), end.isoformat())["close"]
@@ -120,8 +128,10 @@ def build_price_table(
     end: date,
     get_close: Callable[[str], pd.Series] | None = None,
     get_cdi: Callable[[date, date], pd.Series] | None = None,
+    pool: Sequence[tuple[str, str, bool]] = (),
 ) -> pd.DataFrame:
-    """Tabela diária em reais, no calendário da B3, com uma coluna por instrumento. Antes do primeiro dado de um instrumento (e do substituto) a coluna fica vazia."""
+    """Tabela diária em reais, no calendário da B3, com uma coluna por instrumento. Antes do primeiro dado de um instrumento (e do substituto) a coluna fica vazia.
+    `pool` (nome, ticker, em dólar) vira colunas com prefixo P: (o universo do swing); quem não tem dados é pulado."""
     get_close = get_close or _default_close(start, end)
     get_cdi = get_cdi or fetch_cdi
     calendar = get_close(CALENDAR_TICKER).index
@@ -142,6 +152,12 @@ def build_price_table(
             proxy_ticker, proxy_usd = PROXIES[name]
             real = splice(real, to_calendar(get_close(proxy_ticker), proxy_usd))
         columns[name] = real
+    for name, ticker, usd in pool:
+        try:
+            close = get_close(ticker)
+        except DataError:
+            continue
+        columns[POOL_PREFIX + name] = to_calendar(close, True) if usd else close.reindex(calendar).ffill(limit=GAP_DAYS)
     basket = fii_basket(get_close)
     columns["FII"] = basket.reindex(calendar.union(basket.index)).ffill().reindex(calendar)
     cdi_index = get_cdi(start, end).cumprod()

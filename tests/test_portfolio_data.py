@@ -6,7 +6,7 @@ import pytest
 
 from tradingbot.data import DataError
 from tradingbot import portfolio_data
-from tradingbot.portfolio_data import FII_BASKET, build_price_table, fetch_cdi, fii_basket, splice
+from tradingbot.portfolio_data import FII_BASKET, build_price_table, fetch_cdi, fii_basket, splice, stock_pool
 
 
 class _Resp:
@@ -146,7 +146,7 @@ def test_build_price_table_converts_usd_to_reais_aligns_to_b3_and_splices_proxie
 
     table = build_price_table(date(2020, 1, 1), date(2020, 2, 1), get_close, get_cdi)
     assert table.index.equals(b3)
-    assert {"BOVA11", "IVVB11", "FII", "CDI", "VTI", "GLD", "BND", "QQQ", "BBAS3", "NVDA"} <= set(table.columns)
+    assert {"BOVA11", "IVVB11", "FII", "CDI", "VTI", "GLD", "BND", "QQQ", "BBAS3", "PG"} <= set(table.columns)
     assert (table["VTI"] == 50.0).all()  # US$10 x R$5, com o feriado preenchido pelo dia anterior
     assert table["BOVA11"].notna().all() and table["BOVA11"].iloc[4] == pytest.approx(100.0)  # o passado vem do índice
     assert table["BOVA11"].iloc[3] == pytest.approx(100.0 * 1003 / 1004)
@@ -171,12 +171,43 @@ def test_a_one_day_hole_in_a_brazilian_series_is_filled_but_a_long_gap_is_not():
     def get_close(ticker):
         if ticker in ("^BVSP", "BRL=X"):
             return pd.Series(5.0, index=b3)
-        if ticker == "PETR4.SA":
+        if ticker == "ITUB4.SA":
             return pd.Series(10.0, index=b3.delete([10, 20, 21, 22, 23, 24, 25, 26]))  # 1 dia e depois 7 dias sem dado
         if ticker.endswith(".SA"):
             return pd.Series(10.0 + np.arange(30) * 0.1, index=b3)
         return pd.Series(10.0, index=b3)
 
     table = build_price_table(date(2020, 1, 1), date(2020, 3, 1), get_close, lambda s, e: pd.Series(1.0004, index=b3))
-    assert table["PETR4"].iloc[10] == 10.0  # buraco de um dia: preenchido
-    assert pd.isna(table["PETR4"].iloc[26])  # buraco longo: depois de 5 dias preenchidos, volta a faltar
+    assert table["ITUB4"].iloc[10] == 10.0  # buraco de um dia: preenchido
+    assert pd.isna(table["ITUB4"].iloc[26])  # buraco longo: depois de 5 dias preenchidos, volta a faltar
+
+
+def test_the_stock_pool_becomes_prefixed_columns_in_reais_and_skips_tickers_without_data():
+    b3 = pd.bdate_range("2020-01-01", periods=10)
+
+    def get_close(ticker):
+        if ticker == "SEMDADO":
+            raise DataError("sem dados")
+        if ticker in ("^BVSP", "BRL=X"):
+            return pd.Series(5.0 if ticker == "BRL=X" else 1000.0, index=b3)
+        if ticker == "PETR4.SA":
+            return pd.Series(30.0, index=b3)
+        if ticker == "AAPL":
+            return pd.Series(10.0, index=b3)
+        return pd.Series(10.0, index=b3)
+
+    pool = [("PETR4", "PETR4.SA", False), ("AAPL", "AAPL", True), ("SEMDADO", "SEMDADO", True)]
+    table = build_price_table(date(2020, 1, 1), date(2020, 2, 1), get_close, lambda s, e: pd.Series(1.0004, index=b3), pool=pool)
+    assert (table["P:AAPL"] == 50.0).all()  # US$10 x R$5
+    assert (table["P:PETR4"] == 30.0).all()
+    assert "P:SEMDADO" not in table.columns
+
+
+def test_stock_pool_takes_only_us_and_b3_stocks_from_the_catalog():
+    from tradingbot.catalog import Asset
+
+    catalog = [
+        Asset("AAPL", "Apple", "Ações EUA"), Asset("PETR4.SA", "Petrobras", "Ações B3"),
+        Asset("MXRF11.SA", "Maxi", "FIIs"), Asset("SPY", "S&P", "ETFs EUA"), Asset("BTC-USD", "Bitcoin", "Cripto"),
+    ]
+    assert stock_pool(catalog) == [("AAPL", "AAPL", True), ("PETR4", "PETR4.SA", False)]

@@ -91,8 +91,9 @@ def test_export_portfolios_writes_the_file_and_reports_failures(tmp_path, monkey
 
     names = sorted({k for m in ALL_PORTFOLIOS for k in m.universe} - {"CDI"})
     cols = {n: np.linspace(100, 150, len(idx)) for n in names}
+    cols.update({f"P:S{i:02d}": np.linspace(100, 150, len(idx)) for i in range(25)})
     cols["CDI"] = np.cumprod(np.full(len(idx), 1.0004))
-    monkeypatch.setattr(cli, "build_price_table", lambda start, end: pd.DataFrame(cols, index=idx))
+    monkeypatch.setattr(cli, "build_price_table", lambda start, end, pool=(): pd.DataFrame(cols, index=idx))
     assert cli.main(["export", "--portfolios", "--out", str(tmp_path)]) == 0
     assert (tmp_path / "portfolios.json").exists()
 

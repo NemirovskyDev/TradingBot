@@ -7,9 +7,10 @@ import pytest
 from tradingbot.portfolio import (
     ALL_PORTFOLIOS,
     METHODOLOGIES,
+    MIN_POOL,
     PROFILE_PORTFOLIOS,
-    breakout_target,
     REBALANCE_COST,
+    POOL_PREFIX,
     annual_returns,
     drawdown,
     gem_target,
@@ -17,7 +18,9 @@ from tradingbot.portfolio import (
     metrics,
     own_start,
     period_ends,
+    pool_breakout_target,
     simulate,
+    top_by_momentum,
 )
 
 
@@ -210,32 +213,68 @@ def test_period_ends_daily_is_every_day():
     assert period_ends(idx, "daily") == set(idx)
 
 
-def test_breakout_holds_an_asset_only_after_it_breaks_its_recent_high_and_leaves_below_the_low():
-    up = np.concatenate([np.full(70, 100.0), np.linspace(100, 140, 20), np.linspace(140, 80, 30)])
-    flat = np.full(len(up), 50.0)
-    h = _closes(UP=up, FLAT=flat, CDI=np.cumprod(np.full(len(up), 1.0004)))
-    target = breakout_target(("UP", "FLAT"), "CDI", entry=55, exit_=20)
-    assert target(h.index[40], h.iloc[:41]) == {"UP": 0.0, "FLAT": 0.0, "CDI": 1.0}  # sem 55 dias de histórico
-    assert target(h.index[80], h.iloc[:81]) == {"UP": 0.5, "FLAT": 0.0, "CDI": 0.5}  # rompeu a máxima
-    assert target(h.index[-1], h) == {"UP": 0.0, "FLAT": 0.0, "CDI": 1.0}  # caiu abaixo da mínima de 20 dias
+def _pool(**series):
+    return _closes(**{(k if k == "CDI" else POOL_PREFIX + k): v for k, v in series.items()})
 
 
-def test_breakout_is_incremental_and_matches_a_fresh_run_day_by_day():
+def test_top_by_momentum_ranks_by_return_and_skips_assets_without_a_full_window():
+    n = 40
+    h = _pool(
+        A=np.linspace(100, 200, n), B=np.linspace(100, 150, n), C=np.full(n, 100.0), D=np.linspace(100, 300, n),
+        E=np.concatenate([np.full(15, np.nan), np.linspace(100, 900, n - 15)]),  # sem janela completa: não concorre
+    )
+    assert top_by_momentum(h, 2, lookback=30) == [POOL_PREFIX + "D", POOL_PREFIX + "A"]
+    assert top_by_momentum(h, 9, lookback=30) == [POOL_PREFIX + k for k in "DABC"]  # menos elegíveis que vagas: leva todos
+
+
+def test_top_by_momentum_breaks_ties_by_name_and_needs_the_full_lookback():
+    h = _pool(B=np.linspace(100, 150, 40), A=np.linspace(100, 150, 40))
+    assert top_by_momentum(h, 1, lookback=30) == [POOL_PREFIX + "A"]
+    assert top_by_momentum(h.iloc[:20], 2, lookback=30) == []  # histórico menor que a janela
+
+
+def _leader_switch():
+    """A sobe até o dia 100 e para; B fica parado até o dia 100 e dispara. O líder em 20 dias passa de A para B no dia 101."""
+    n = 200
+    t = np.arange(n)
+    a = 100 * 1.004 ** np.minimum(t, 100)
+    b = 100 * 1.03 ** np.maximum(t - 100, 0)
+    return _pool(A=a, B=b, CDI=np.cumprod(np.full(n, 1.0004)))
+
+
+def test_pool_target_reselects_only_on_the_first_trading_day_of_a_month():
+    h = _leader_switch()
+    target = pool_breakout_target("CDI", n=1, lookback=20, entry=10, exit_=5)
+    weights = {i: target(h.index[i], h.iloc[: i + 1]) for i in range(30, len(h))}
+    june = int(np.flatnonzero(h.index.month == 6)[0])
+    assert h.index[june - 1].month == 5 and june > 101  # B já lidera antes da virada do mês
+    assert weights[june - 1][POOL_PREFIX + "B"] == 0.0 and weights[june - 1][POOL_PREFIX + "A"] == 1.0
+    assert weights[june][POOL_PREFIX + "B"] == 1.0 and weights[june][POOL_PREFIX + "A"] == 0.0
+
+
+def test_pool_target_splits_the_book_in_equal_slots_and_parks_the_rest_in_cash():
+    h = _pool(A=np.linspace(100, 300, 120), B=np.full(120, 100.0), C=np.linspace(100, 200, 120), CDI=np.cumprod(np.full(120, 1.0004)))
+    w = pool_breakout_target("CDI", n=4, lookback=30, entry=10, exit_=5)(h.index[-1], h)
+    assert w[POOL_PREFIX + "A"] == 0.25 and w[POOL_PREFIX + "C"] == 0.25 and w[POOL_PREFIX + "B"] == 0.0
+    assert w["CDI"] == pytest.approx(0.5) and sum(w.values()) == pytest.approx(1.0)
+
+
+def test_pool_target_is_incremental_and_matches_a_fresh_run_day_by_day():
     rng = np.random.default_rng(3)
-    a = 100 * np.cumprod(1 + rng.normal(0.001, 0.02, 300))
-    b = 100 * np.cumprod(1 + rng.normal(0.0, 0.02, 300))
-    h = _closes(A=a, B=b, CDI=np.cumprod(np.full(300, 1.0004)))
-    running = breakout_target(("A", "B"), "CDI")
-    for i in range(100, 300, 7):
-        fresh = breakout_target(("A", "B"), "CDI")(h.index[i], h.iloc[: i + 1])
-        assert running(h.index[i], h.iloc[: i + 1]) == fresh
+    cols = {k: 100 * np.cumprod(1 + rng.normal(m, 0.02, 400)) for k, m in zip("ABCDEF", (0.002, 0.001, 0.0, -0.001, 0.0015, 0.0005))}
+    h = _pool(**cols, CDI=np.cumprod(np.full(400, 1.0004)))
+    running = pool_breakout_target("CDI", n=3)
+    for i in range(0, 400):
+        got = running(h.index[i], h.iloc[: i + 1])
+        if i >= 270 and h.index[i].month != h.index[i - 1].month:  # só aí as duas escolhem com o mesmo dia de referência
+            assert got == pool_breakout_target("CDI", n=3)(h.index[i], h.iloc[: i + 1])
 
 
-def test_breakout_ignores_a_missing_price_instead_of_crashing():
-    a = np.concatenate([np.full(10, np.nan), np.linspace(100, 200, 120)])
-    h = _closes(A=a, CDI=np.cumprod(np.full(130, 1.0004)))
-    w = breakout_target(("A",), "CDI")(h.index[-1], h)
-    assert sum(w.values()) == pytest.approx(1.0)
+def test_pool_target_ignores_a_missing_price_instead_of_crashing():
+    a = np.concatenate([np.full(10, np.nan), np.linspace(100, 200, 330)])
+    h = _pool(A=a, CDI=np.cumprod(np.full(340, 1.0004)))
+    w = pool_breakout_target("CDI", n=1)(h.index[-1], h)
+    assert sum(w.values()) == pytest.approx(1.0) and all(v >= 0 for v in w.values())
 
 
 def test_profile_portfolios_are_four_with_valid_weights_and_sit_apart_from_the_classics():
@@ -256,20 +295,25 @@ def test_stability_portfolio_is_mostly_cash_and_swing_checks_every_day():
     stab = dict(next(m for m in PROFILE_PORTFOLIOS if m.id == "estabilidade").weights)
     assert stab["CDI"] == 0.70
     swing = next(m for m in PROFILE_PORTFOLIOS if m.id == "swing-alto-risco")
-    assert swing.rebalance == "daily" and swing.weights is None and "CDI" in swing.universe and len(swing.universe) == 9
+    assert swing.rebalance == "daily" and swing.weights is None and swing.pool and swing.universe == ("CDI",)
 
 
-def test_swing_waits_for_its_long_lived_assets_but_not_for_the_recent_ones():
+def test_swing_starts_only_when_enough_stocks_exist_plus_the_warmup():
     swing = next(m for m in PROFILE_PORTFOLIOS if m.id == "swing-alto-risco")
-    assert swing.optional == ("TSLA", "META")
-    idx = pd.bdate_range("2004-01-01", periods=400)
-    cols = {name: np.full(400, 100.0) for name in swing.universe}
+    idx = pd.bdate_range("2004-01-01", periods=800)
+    cols = {"CDI": np.cumprod(np.full(800, 1.0004))}
+    for i in range(MIN_POOL + 5):  # cada ação entra 10 pregões depois da anterior
+        cols[f"{POOL_PREFIX}S{i:02d}"] = np.concatenate([np.full(10 * i, np.nan), np.full(800 - 10 * i, 100.0)])
     table = pd.DataFrame(cols, index=idx)
-    table["CDI"] = np.cumprod(np.full(400, 1.0004))
-    table["NVDA"] = np.concatenate([np.full(50, np.nan), np.full(350, 100.0)])  # obrigatório: o início espera por ele
-    table["TSLA"] = np.nan  # opcional: não atrasa
-    start = own_start(table, swing)
-    assert start == idx[idx >= idx[50] + pd.Timedelta(days=90)][0]
+    enough = idx[10 * (MIN_POOL - 1)]  # primeiro dia com MIN_POOL ações cotadas
+    assert own_start(table, swing) == idx[idx >= enough + pd.Timedelta(days=swing.warmup_days)][0]
+
+
+def test_swing_without_enough_stocks_is_rejected_instead_of_starting_as_pure_cash():
+    swing = next(m for m in PROFILE_PORTFOLIOS if m.id == "swing-alto-risco")
+    table = _pool(A=np.full(500, 100.0), CDI=np.cumprod(np.full(500, 1.0004)))
+    with pytest.raises(ValueError, match="ações"):
+        own_start(table, swing)
 
 
 def test_own_start_is_the_latest_first_price_plus_warmup_and_rejects_missing_instruments():

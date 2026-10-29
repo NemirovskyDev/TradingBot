@@ -35,8 +35,8 @@ PROFILES: tuple[Profile, ...] = (
     ),
     Profile(
         "swing-alto-risco", "Alto risco, curto prazo", "Quero resultado rápido e aceito risco alto.",
-        "Compra e venda de ativos voláteis em ciclos de dias a semanas, seguindo rompimentos de preço. Os dados são diários, então day trade (no mesmo dia) não é simulável aqui.",
-        "Os 8 ativos foram escolhidos hoje, sabendo quais prosperaram (Nvidia, Amazon, Netflix...), então este resultado é otimista demais. Risco alto não significa lucro alto: a maioria das estratégias por ativo perde para comprar e segurar.",
+        "Compra e venda de ações fortes em ciclos de dias a semanas: todo mês escolhe as 8 de maior alta em 12 meses e segue os rompimentos de preço. Os dados são diários, então day trade (no mesmo dia) não é simulável aqui.",
+        "A regra escolhe as ações mês a mês, sem olhar o futuro, mas o catálogo só tem empresas que existem hoje (quem faliu ficou de fora), então o resultado ainda é um pouco otimista. Risco alto não significa lucro alto: a maioria das estratégias por ativo perde para comprar e segurar.",
         "swing-alto-risco", None, True,
     ),
 )
