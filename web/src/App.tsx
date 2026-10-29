@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useIndex } from "./data/useIndex";
+import { usePortfolios } from "./data/usePortfolios";
 import { useRun } from "./data/useRun";
 import type { Run, RunRef } from "./data/types";
 import { ChartScreen } from "./features/chart/ChartScreen";
 import { GlossaryScreen } from "./features/glossary/GlossaryScreen";
 import { Overview } from "./features/overview/Overview";
+import { PortfoliosScreen } from "./features/portfolios/PortfoliosScreen";
 import { RiskScreen } from "./features/risk/RiskScreen";
 import { TradesScreen } from "./features/trades/TradesScreen";
 import { Reveal } from "./motion";
@@ -34,6 +36,19 @@ function RunScreen({ run, route, selectedTrade }: { run: Run; route: RouteId; se
     default:
       return <Overview run={run} />;
   }
+}
+
+function PortfoliosRoute() {
+  const state = usePortfolios();
+  if (state.status === "loading") return <Loading />;
+  if (state.status === "error") return <ErrorState error={state.error} onRetry={state.retry} />;
+  return (
+    <ErrorBoundary>
+      <Reveal>
+        <PortfoliosScreen data={state.data} />
+      </Reveal>
+    </ErrorBoundary>
+  );
 }
 
 function Runs({ runs, route, selectedTrade }: { runs: RunRef[]; route: RouteId; selectedTrade: string | null }) {
@@ -80,7 +95,10 @@ export default function App() {
   }, [route]);
 
   let content;
-  if (route === "glossario") {
+  if (route === "carteiras") {
+    // as carteiras têm o próprio arquivo de dados: não esperam o índice das execuções
+    content = <PortfoliosRoute />;
+  } else if (route === "glossario") {
     // o glossário não depende dos dados: continua útil mesmo se o carregamento falhar
     content = (
       <>

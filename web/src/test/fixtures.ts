@@ -1,4 +1,4 @@
-import type { Run, RunIndex } from "../data/types";
+import type { PortfolioData, Run, RunIndex } from "../data/types";
 
 function isoDay(offset: number): string {
   const d = new Date(Date.UTC(2024, 0, 1 + offset));
@@ -91,6 +91,58 @@ export function makeIndex(): RunIndex {
     runs: [
       { id: "demo-sma_cross", ticker: "DEMO", strategy: "sma_cross", label: "Exemplo · sma_cross" },
       { id: "demo-momentum", ticker: "DEMO", strategy: "momentum", label: "Exemplo · momentum" },
+    ],
+  };
+}
+
+/** Carteiras de exemplo: 4 datas, duas carteiras (uma de pesos fixos, uma de rotação) e as três referências. */
+export function makePortfolios(): PortfolioData {
+  const series = (id: string, name: string, equity: number[], cagr: number) => ({
+    id,
+    name,
+    equity,
+    drawdown: equity.map((v) => Math.min(0, v / Math.max(...equity) - 1)),
+    metrics: { total_return: equity[equity.length - 1]! / 100 - 1, cagr, volatility: 0.09, max_drawdown: -0.24, sharpe: 0.3 },
+    annual_returns: [
+      { year: 2020, return: 0.05, partial: true },
+      { year: 2021, return: 0.12, partial: false },
+    ],
+  });
+  return {
+    schema: 1,
+    currency: "BRL",
+    generated_at: "2026-10-28",
+    start: "2020-06-01",
+    end: "2021-06-01",
+    dates: ["2020-06-01", "2020-12-01", "2021-03-01", "2021-06-01"],
+    assumptions: ["Tudo em reais.", "Não há imposto de renda."],
+    portfolios: [
+      {
+        ...series("arca", "ARCA", [100, 110, 120, 130], 0.125),
+        author: "Thiago Nigro (Primo Rico)",
+        summary: "Quatro quadrantes de 25%.",
+        rule: "Rebalanceia uma vez por ano.",
+        rebalance: "yearly",
+        components: [
+          { label: "Ações brasileiras (BOVA11)", weight: 0.25 },
+          { label: "Caixa (CDI)", weight: 0.25 },
+        ],
+        universe: ["Ações brasileiras (BOVA11)", "Caixa (CDI)"],
+      },
+      {
+        ...series("momentum-dual", "Momentum dual (GEM)", [100, 105, 95, 140], 0.158),
+        author: "Gary Antonacci",
+        summary: "Um ativo por vez.",
+        rule: "Decide no fechamento de cada mês.",
+        rebalance: "monthly",
+        components: [],
+        universe: ["Ações dos EUA (VTI)", "Títulos dos EUA (BND)"],
+      },
+    ],
+    benchmarks: [
+      series("cdi", "CDI", [100, 105, 108, 110], 0.101),
+      series("ibovespa", "Ibovespa (BOVA11)", [100, 90, 110, 120], 0.104),
+      series("sp500", "S&P 500 em reais (IVVB11)", [100, 120, 140, 160], 0.212),
     ],
   };
 }

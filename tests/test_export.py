@@ -11,7 +11,7 @@ from tradingbot.config import CostConfig, RiskConfig
 from tradingbot.demo import make_synthetic_prices
 from tradingbot.evaluate import Verdict
 from tradingbot.export import export_run, write_index
-from tradingbot.strategies import sma_cross
+from tradingbot.strategies import REASONS, sma_cross
 
 FREE = CostConfig(commission=0.0, slippage_bps=0.0)
 ISO = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -60,7 +60,7 @@ def test_export_trade_ids_are_unique_and_reasons_come_from_strategy(tmp_path):
     data = _export(tmp_path, prices, res)
     ids = [t["id"] for t in data["trades"]]
     assert len(ids) == len(set(ids))
-    assert data["trades"][0]["reason_entry"] == "A média curta cruzou a longa para cima."
+    assert data["trades"][0]["reason_entry"] == REASONS["sma_cross"]["entry"]
 
 
 def test_export_stop_exit_uses_stop_reason(tmp_path):

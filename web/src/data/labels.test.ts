@@ -9,6 +9,8 @@ test("displayTicker hides the technical suffixes but keeps real tickers intact",
 });
 
 test("strategyLabel translates known strategies and keeps unknown ones", () => {
-  expect(strategyLabel("momentum")).toBe("Momentum (tendência)");
+  expect(strategyLabel("sma_cross")).toBe("Golden cross 50/200");
+  expect(strategyLabel("donchian")).toBe("Rompimento Donchian");
+  expect(strategyLabel("momentum")).toBe("Momentum de 12 meses");
   expect(strategyLabel("outra")).toBe("outra");
 });

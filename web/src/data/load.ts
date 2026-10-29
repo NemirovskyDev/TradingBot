@@ -1,5 +1,5 @@
-import type { Run, RunIndex } from "./types";
-import { DataError, parseIndex, parseRun, SAFE_ID } from "./validate";
+import type { PortfolioData, Run, RunIndex } from "./types";
+import { DataError, parseIndex, parsePortfolios, parseRun, SAFE_ID } from "./validate";
 
 type FetchFn = typeof fetch;
 
@@ -26,4 +26,8 @@ export async function loadRun(id: string, fetchFn: FetchFn = fetch): Promise<Run
   // o id vira parte do caminho do arquivo: só aceita o formato que o backend gera
   if (!SAFE_ID.test(id)) throw new DataError("Identificador de execução inválido.");
   return parseRun(await getJson(`data/runs/${id}.json`, fetchFn));
+}
+
+export async function loadPortfolios(fetchFn: FetchFn = fetch): Promise<PortfolioData> {
+  return parsePortfolios(await getJson("data/portfolios.json", fetchFn));
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 export const ROUTES = [
+  { id: "carteiras", label: "Carteiras" },
   { id: "visao-geral", label: "Visão geral" },
   { id: "grafico", label: "Gráfico" },
   { id: "operacoes", label: "Operações" },
@@ -17,7 +18,7 @@ export interface HashRoute {
 
 function read(): HashRoute {
   const [path = "", query = ""] = window.location.hash.replace(/^#\/?/, "").split("?");
-  const route = ROUTES.find((r) => r.id === path)?.id ?? "visao-geral";
+  const route = ROUTES.find((r) => r.id === path)?.id ?? "carteiras";
   return { route, params: new URLSearchParams(query) };
 }
 

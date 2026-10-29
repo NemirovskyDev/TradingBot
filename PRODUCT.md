@@ -13,7 +13,7 @@ React + Vite (escolha do Bernardo, 2026-10-28). Sai como site estático, sem bac
 Dois públicos com o mesmo peso: (1) pessoas leigas em finanças, que nunca viram um gráfico de candles e precisam entender o que o bot faz; (2) recrutadores e desenvolvedores que avaliam a qualidade técnica do projeto no GitHub e no portfólio do Bernardo.
 
 ## Product Purpose
-Painel que mostra, de forma visual e explicada, o que o TradingBot faz: o gráfico do ativo, as compras e vendas (simuladas na fase 1), a curva do capital contra "comprar e segurar", as métricas e o veredito do critério de promoção. Serve também de vitrine do projeto. Sucesso: um leigo entende em minutos o que aconteceu em cada trade, e um dev reconhece o cuidado técnico.
+Painel que mostra, de forma visual e explicada, dois blocos: (1) **carteiras** clássicas (ARCA do Primo Rico, Carteira Permanente, All Weather, Golden Butterfly, 60/40, tendência de 10 meses de Faber e momentum dual de Antonacci) simuladas em reais contra CDI, Ibovespa e S&P 500; (2) o que o TradingBot faz por ativo: o gráfico do ativo, as compras e vendas (simuladas na fase 1), a curva do capital contra "comprar e segurar", as métricas e o veredito do critério de promoção. Serve também de vitrine do projeto. Sucesso: um leigo entende em minutos o que aconteceu em cada trade, e um dev reconhece o cuidado técnico.
 
 ## Positioning
 Um painel de trading que explica cada decisão em linguagem simples e é honesto sobre os limites (simulação, sem recomendação de investimento), em vez de prometer lucro.
@@ -26,8 +26,10 @@ Site estático público (GitHub Pages) lendo JSON pré-gerado pelo backtest com 
 - Sem backend e sem chaves no repositório; o painel público nunca conecta a conta real.
 - Aviso visível de "simulação, não é recomendação de investimento".
 - Cada trade tem uma frase de explicação; métricas têm glossário rápido.
+- Tema escuro único (decisão de 2026-10-28), sem alternância; a tela inicial são as carteiras.
+- Estratégias por ativo (revisadas em 2026-10-28, parâmetros publicados e sem otimização): golden cross 50/200, rompimento de Donchian 55/20 e momentum de 12 meses. A maioria não bate comprar e segurar no trecho de teste, e o painel mostra isso. Nenhuma passa no veredito atual: o mínimo de 30 operações é inalcançável para tendência em cerca de 2,4 anos de teste (decisão pendente do Bernardo).
 - Escopo reduzido (2026-10-28): vitrine de portfólio com dados históricos reais e estáticos, sem tempo real e sem backend na nuvem. O catálogo tem cerca de 200 ativos (ações dos EUA e da B3, ETFs, FIIs e cripto), cada um com 3 estratégias.
-- Fonte dos preços: Yahoo Finance via yfinance (uso educacional, com aviso de fonte; os termos do Yahoo restringem redistribuição, risco aceito conscientemente pelo Bernardo). Listas de ativos: Wikipedia (S&P 500) e brapi.dev (Ibovespa e FIIs).
+- Fonte dos preços: Yahoo Finance via yfinance (uso educacional, com aviso de fonte; os termos do Yahoo restringem redistribuição, risco aceito conscientemente pelo Bernardo). Listas de ativos: Wikipedia (S&P 500) e brapi.dev (Ibovespa e FIIs). CDI: API do Banco Central (série 12). Carteiras em reais: ETFs em dólar convertidos pelo câmbio do Yahoo (`BRL=X`).
 
 ## Brand Commitments
 - Repositório próprio no GitHub com demo publicada; o Portfólio do Bernardo aponta para ele (integração direta pode vir depois).

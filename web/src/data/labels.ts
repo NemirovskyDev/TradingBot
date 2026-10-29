@@ -1,7 +1,7 @@
 const STRATEGIES: Record<string, string> = {
-  sma_cross: "Cruzamento de médias",
-  rsi_reversion: "Reversão por RSI",
-  momentum: "Momentum (tendência)",
+  sma_cross: "Golden cross 50/200",
+  donchian: "Rompimento Donchian",
+  momentum: "Momentum de 12 meses",
 };
 
 /** Nome em português da estratégia; ids desconhecidos aparecem como vieram. */

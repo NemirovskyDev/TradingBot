@@ -36,20 +36,20 @@ const TEXT_PAIRS: [string, string][] = [
   ["loss", "surface"],
   ["loss", "ground"],
   ["alert", "surface"],
+  ["gain", "gain-wash"],
+  ["loss", "loss-wash"],
+  ["ink", "raised"],
+  ["action-ink", "action-hover"],
 ];
 
 test.each(TEXT_PAIRS)("text --%s on --%s meets WCAG AA (4.5:1)", (fg, bg) => {
   expect(contrast(token(fg), token(bg))).toBeGreaterThanOrEqual(4.5);
 });
 
-test("white text on the dark tooltip background meets AA", () => {
-  expect(contrast("#ffffff", token("ink"))).toBeGreaterThanOrEqual(4.5);
-});
-
 test("the dashed benchmark line is at least 3:1 against the chart background (non-text)", () => {
-  expect(contrast("#6b7a8a", token("surface"))).toBeGreaterThanOrEqual(3);
+  expect(contrast(token("benchmark"), token("surface"))).toBeGreaterThanOrEqual(3);
 });
 
-test("button hover color keeps white text readable", () => {
-  expect(contrast("#1b44bb", "#ffffff")).toBeGreaterThanOrEqual(4.5);
+test("control borders are at least 3:1 against the surface (non-text)", () => {
+  expect(contrast(token("line-strong"), token("surface"))).toBeGreaterThanOrEqual(3);
 });

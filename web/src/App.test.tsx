@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
-import { makeIndex, makeRun } from "./test/fixtures";
+import { makeIndex, makePortfolios, makeRun } from "./test/fixtures";
 
 vi.mock("lightweight-charts", async () => await import("./test/lightweightMock"));
 
@@ -21,6 +21,11 @@ function happyPath(url: string): Response {
   if (url.endsWith("demo-momentum.json")) return json(makeRun({ verdict: { passed: true, reasons: [] } }));
   return new Response("", { status: 404 });
 }
+
+// a tela inicial agora são as carteiras: os testes das execuções entram pela visão geral
+beforeEach(() => {
+  window.location.hash = "#/visao-geral";
+});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -121,4 +126,24 @@ test("changing the route moves focus to the content for keyboard and screen read
   await screen.findByText("12,4%");
   window.location.hash = "#/risco";
   await waitFor(() => expect(screen.getByRole("main")).toHaveFocus());
+});
+
+test("the portfolios are the home screen and load without waiting for the run index", async () => {
+  window.location.hash = "";
+  stubFetch((url) => (url.endsWith("data/portfolios.json") ? json(makePortfolios()) : new Response("", { status: 500 })));
+  render(<App />);
+  expect(await screen.findByRole("heading", { level: 1, name: "Carteiras" })).toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "ARCA" })).toBeInTheDocument();
+  expect(document.title).toMatch(/^Carteiras/);
+});
+
+test("the portfolios screen shows an error with retry when portfolios.json fails, and recovers", async () => {
+  window.location.hash = "#/carteiras";
+  let fail = true;
+  stubFetch(() => (fail ? new Response("", { status: 500 }) : json(makePortfolios())));
+  render(<App />);
+  expect(await screen.findByRole("alert")).toHaveTextContent(/erro 500/);
+  fail = false;
+  await userEvent.click(screen.getByRole("button", { name: /tentar de novo/i }));
+  expect(await screen.findByRole("region", { name: "ARCA" })).toBeInTheDocument();
 });

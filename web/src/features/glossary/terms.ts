@@ -1,4 +1,4 @@
-export type TermKey = "candle" | "drawdown" | "sharpe" | "stop" | "buy_hold" | "backtest" | "fora_amostra";
+export type TermKey = "candle" | "drawdown" | "sharpe" | "stop" | "buy_hold" | "backtest" | "fora_amostra" | "cagr" | "volatilidade" | "rebalanceamento";
 
 export interface Term {
   name: string;
@@ -34,5 +34,17 @@ export const TERMS: Record<TermKey, Term> = {
   fora_amostra: {
     name: "Trecho de teste (fora da amostra)",
     short: "Parte do histórico separada para julgar a estratégia, sem ter sido usada para escolhê-la. É o que conta para o veredito.",
+  },
+  cagr: {
+    name: "Retorno ao ano (CAGR)",
+    short: "A taxa anual que, repetida todo ano, leva o dinheiro do valor inicial ao final. Permite comparar períodos de tamanhos diferentes.",
+  },
+  volatilidade: {
+    name: "Volatilidade",
+    short: "O quanto o valor oscila no dia a dia, medido em porcentagem ao ano. Quanto maior, mais o caminho é turbulento.",
+  },
+  rebalanceamento: {
+    name: "Rebalanceamento",
+    short: "Vender o que subiu e comprar o que ficou para trás para voltar aos pesos combinados. Cada troca tem um custo.",
   },
 };

@@ -21,6 +21,12 @@ function Icon({ children }: { children: ReactNode }) {
 }
 
 const ICONS: Record<RouteId, ReactNode> = {
+  carteiras: (
+    <>
+      <path d="M12 3a9 9 0 1 0 9 9h-9z" />
+      <path d="M15.5 3.6A9 9 0 0 1 20.4 8.5H15.5z" />
+    </>
+  ),
   "visao-geral": (
     <>
       <rect x="3" y="3" width="7" height="9" rx="1.5" />

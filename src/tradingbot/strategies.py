@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 
-def sma_cross(prices: pd.DataFrame, fast: int = 20, slow: int = 50) -> pd.Series:
+def sma_cross(prices: pd.DataFrame, fast: int = 50, slow: int = 200) -> pd.Series:
     close = prices["close"]
     fast_ma = close.rolling(fast, min_periods=fast).mean()
     slow_ma = close.rolling(slow, min_periods=slow).mean()
@@ -14,6 +14,7 @@ def sma_cross(prices: pd.DataFrame, fast: int = 20, slow: int = 50) -> pd.Series
 
 
 def _rsi(close: pd.Series, period: int) -> pd.Series:
+    """RSI de Wilder. Fica aqui porque o analyst usa o indicador, mesmo sem estratégia de RSI."""
     delta = close.diff()
     gain = delta.clip(lower=0).ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
     loss = (-delta.clip(upper=0)).ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
@@ -21,24 +22,25 @@ def _rsi(close: pd.Series, period: int) -> pd.Series:
     return (100 - 100 / (1 + rs)).where(loss != 0, 100.0)
 
 
-def rsi_reversion(
-    prices: pd.DataFrame, period: int = 14, buy_below: float = 30, exit_above: float = 50
-) -> pd.Series:
-    rsi = _rsi(prices["close"], period)
+def donchian(prices: pd.DataFrame, entry: int = 55, exit_: int = 20) -> pd.Series:
+    """Rompimento de Donchian (turtles): compra acima da máxima de `entry` dias, sai abaixo da mínima de `exit_` dias."""
+    upper = prices["high"].rolling(entry, min_periods=entry).max().shift(1)
+    lower = prices["low"].rolling(exit_, min_periods=exit_).min().shift(1)
     held = 0
     out = []
-    for value in rsi:
-        if np.isnan(value):
+    for close, up, low in zip(prices["close"], upper, lower):
+        if np.isnan(up) or np.isnan(low):
             held = 0
-        elif held == 0 and value < buy_below:
+        elif held == 0 and close > up:
             held = 1
-        elif held == 1 and value > exit_above:
+        elif held == 1 and close < low:
             held = 0
         out.append(held)
     return pd.Series(out, index=prices.index, name="signal", dtype=int)
 
 
-def momentum(prices: pd.DataFrame, lookback: int = 60) -> pd.Series:
+def momentum(prices: pd.DataFrame, lookback: int = 252) -> pd.Series:
+    """Momentum absoluto (Antonacci): comprado enquanto o retorno dos últimos 12 meses é positivo."""
     close = prices["close"]
     ret = close / close.shift(lookback) - 1
     return (ret > 0).astype(int).rename("signal")
@@ -46,22 +48,22 @@ def momentum(prices: pd.DataFrame, lookback: int = 60) -> pd.Series:
 
 STRATEGIES: dict[str, Callable[..., pd.Series]] = {
     "sma_cross": sma_cross,
-    "rsi_reversion": rsi_reversion,
+    "donchian": donchian,
     "momentum": momentum,
 }
 
 # Frases mostradas ao usuário (front) para cada compra e saída por sinal.
 REASONS: dict[str, dict[str, str]] = {
     "sma_cross": {
-        "entry": "A média curta cruzou a longa para cima.",
-        "exit": "A média curta cruzou a longa para baixo.",
+        "entry": "A média de 50 dias cruzou a de 200 para cima (o chamado golden cross).",
+        "exit": "A média de 50 dias cruzou a de 200 para baixo.",
     },
-    "rsi_reversion": {
-        "entry": "O ativo caiu demais (RSI abaixo de 30) e o bot apostou na recuperação.",
-        "exit": "O RSI voltou acima de 50, então o bot realizou o ganho.",
+    "donchian": {
+        "entry": "O preço passou da máxima dos últimos 55 dias: um rompimento de alta.",
+        "exit": "O preço caiu abaixo da mínima dos últimos 20 dias, e o bot saiu.",
     },
     "momentum": {
-        "entry": "O preço está acima do de 60 dias atrás: tendência de alta.",
-        "exit": "O preço caiu abaixo do de 60 dias atrás: a tendência de alta acabou.",
+        "entry": "O preço está acima do de 12 meses atrás: tendência de alta.",
+        "exit": "O preço caiu abaixo do de 12 meses atrás: a tendência de alta acabou.",
     },
 }

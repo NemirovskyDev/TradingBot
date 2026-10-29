@@ -1,5 +1,5 @@
-import { makeIndex, makeRun } from "../test/fixtures";
-import { DataError, parseIndex, parseRun } from "./validate";
+import { makeIndex, makePortfolios, makeRun } from "../test/fixtures";
+import { DataError, parseIndex, parsePortfolios, parseRun } from "./validate";
 
 test("parseRun accepts a valid fixture", () => {
   const run = parseRun(JSON.parse(JSON.stringify(makeRun())));
@@ -88,4 +88,45 @@ test("parseIndex keeps optional name and category and rejects non-text values", 
 test("parseIndex rejects duplicate run ids", () => {
   const run = { id: "a", ticker: "A", strategy: "s", label: "l" };
   expect(() => parseIndex({ schema: 1, runs: [run, run] })).toThrow(/runs\[1\]\.id/);
+});
+
+const rawPortfolios = () => JSON.parse(JSON.stringify(makePortfolios()));
+
+test("parsePortfolios accepts a valid fixture, including null metrics", () => {
+  const raw = rawPortfolios();
+  raw.portfolios[0].metrics.sharpe = null;
+  const data = parsePortfolios(raw);
+  expect(data.portfolios.map((p) => p.id)).toEqual(["arca", "momentum-dual"]);
+  expect(data.portfolios[0]!.metrics.sharpe).toBeNull();
+  expect(data.benchmarks).toHaveLength(3);
+});
+
+test("parsePortfolios rejects a series whose length does not match the dates, naming the field", () => {
+  const raw = rawPortfolios();
+  raw.portfolios[1].equity.pop();
+  expect(() => parsePortfolios(raw)).toThrow(/portfolios\[1\]\.equity/);
+});
+
+test("parsePortfolios rejects other schema versions, other currencies and unordered dates", () => {
+  expect(() => parsePortfolios({ ...rawPortfolios(), schema: 2 })).toThrow(/versão/i);
+  expect(() => parsePortfolios({ ...rawPortfolios(), currency: "USD" })).toThrow(/currency/);
+  const raw = rawPortfolios();
+  raw.dates[2] = "2020-01-01";
+  expect(() => parsePortfolios(raw)).toThrow(/dates/);
+});
+
+test("parsePortfolios rejects duplicate ids, an unknown rebalance and NaN-like values", () => {
+  const dup = rawPortfolios();
+  dup.benchmarks[0].id = "arca";
+  expect(() => parsePortfolios(dup)).toThrow(/identificador único/);
+  const reb = rawPortfolios();
+  reb.portfolios[0].rebalance = "weekly";
+  expect(() => parsePortfolios(reb)).toThrow(/rebalance/);
+  const bad = rawPortfolios();
+  bad.portfolios[0].equity[1] = "x";
+  expect(() => parsePortfolios(bad)).toThrow(DataError);
+});
+
+test.each([null, 7, "texto", []])("parsePortfolios rejects non-object input %p", (value) => {
+  expect(() => parsePortfolios(value)).toThrow(DataError);
 });

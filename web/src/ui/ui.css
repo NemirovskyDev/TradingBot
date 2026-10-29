@@ -6,8 +6,8 @@
   top: -3rem;
   z-index: 20;
   padding: var(--space-2) var(--space-4);
-  background: var(--ink);
-  color: #fff;
+  background: var(--raised);
+  color: var(--ink);
   border-radius: var(--radius);
 }
 .skip-link:focus {
@@ -109,7 +109,7 @@ main {
     display: none;
   }
   .nav ul {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr); /* uma coluna por seção do painel */
   }
   .nav a {
     flex-direction: column;
@@ -117,7 +117,7 @@ main {
     gap: 2px;
     min-height: 52px;
     padding: 0 2px;
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
   }
   main {
     padding: var(--space-5) var(--space-4) var(--space-4);
@@ -196,7 +196,7 @@ main {
   font: inherit;
 }
 .run-selector select:hover {
-  border-color: #b9c4d0;
+  border-color: var(--line-strong);
 }
 
 /* ---------- dica de glossário ---------- */
@@ -222,8 +222,8 @@ main {
   width: min(18rem, 80vw);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius);
-  background: var(--ink);
-  color: #fff;
+  background: var(--raised);
+  color: var(--ink);
   font-size: var(--text-sm);
   font-weight: 400;
   line-height: 1.45;
@@ -267,7 +267,7 @@ main {
   background: none;
 }
 .state-error {
-  border-color: #e6b7b3;
+  border-color: var(--loss-line);
 }
 .state-loading {
   display: flex;
@@ -306,5 +306,5 @@ main {
   transition: background-color 120ms ease-out;
 }
 .button:hover {
-  background: #1b44bb;
+  background: var(--action-hover);
 }

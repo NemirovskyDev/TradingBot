@@ -23,7 +23,7 @@ export interface MarkerColors {
   loss: string;
 }
 
-const DEFAULT_COLORS: MarkerColors = { gain: "#13734a", loss: "#b3261e" };
+const DEFAULT_COLORS: MarkerColors = { gain: "#3ddc97", loss: "#ff7b7b" };
 
 export function toCandles(prices: Price[]): Candle[] {
   return prices

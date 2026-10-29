@@ -99,3 +99,55 @@ export interface Run {
   metrics: Metrics;
   verdict: Verdict;
 }
+
+/** Carteiras (portfolios.json): todas as séries compartilham `dates` e começam em 100. Retornos são frações; null quando não há como calcular. */
+export interface PortfolioMetrics {
+  total_return: number | null;
+  cagr: number | null;
+  volatility: number | null;
+  max_drawdown: number | null;
+  sharpe: number | null;
+}
+
+export interface AnnualReturn {
+  year: number;
+  return: number | null;
+  /** Primeiro ou último ano incompleto: o retorno não cobre o ano inteiro. */
+  partial: boolean;
+}
+
+export interface PortfolioSeries {
+  id: string;
+  name: string;
+  equity: number[];
+  drawdown: number[];
+  metrics: PortfolioMetrics;
+  annual_returns: AnnualReturn[];
+}
+
+export interface PortfolioComponent {
+  label: string;
+  weight: number;
+}
+
+export interface Portfolio extends PortfolioSeries {
+  author: string;
+  summary: string;
+  rule: string;
+  rebalance: "yearly" | "monthly";
+  /** Vazio nas metodologias em que os pesos mudam com o sinal (Ivy, momentum dual). */
+  components: PortfolioComponent[];
+  universe: string[];
+}
+
+export interface PortfolioData {
+  schema: 1;
+  currency: "BRL";
+  generated_at: string;
+  start: string;
+  end: string;
+  dates: string[];
+  assumptions: string[];
+  portfolios: Portfolio[];
+  benchmarks: PortfolioSeries[];
+}

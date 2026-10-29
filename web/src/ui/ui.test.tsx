@@ -16,17 +16,17 @@ afterEach(() => {
 
 test("useHashRoute follows the hash", async () => {
   const { result } = renderHook(() => useHashRoute());
-  expect(result.current.route).toBe("visao-geral");
+  expect(result.current.route).toBe("carteiras");
   act(() => {
     window.location.hash = "#/risco";
   });
   await waitFor(() => expect(result.current.route).toBe("risco"));
 });
 
-test("useHashRoute falls back to the overview for unknown routes and reads query params", async () => {
+test("useHashRoute falls back to the portfolios for unknown routes and reads query params", async () => {
   window.location.hash = "#/nada-aqui?trade=t2";
   const { result } = renderHook(() => useHashRoute());
-  expect(result.current.route).toBe("visao-geral");
+  expect(result.current.route).toBe("carteiras");
   act(() => {
     window.location.hash = "#/grafico?trade=t2";
   });
@@ -111,7 +111,7 @@ test("Hint opens on focus, exposes role tooltip with the glossary text and close
 });
 
 test("strategyLabel translates known strategies and keeps unknown ones", () => {
-  expect(strategyLabel("sma_cross")).toBe("Cruzamento de médias");
+  expect(strategyLabel("sma_cross")).toBe("Golden cross 50/200");
   expect(strategyLabel("outra")).toBe("outra");
 });
 
@@ -147,14 +147,14 @@ test("ErrorState gives a plain-language message, the technical detail and what t
 test("RunHeader still offers the selector when the run is not loaded", async () => {
   const onChange = vi.fn();
   render(<RunHeader runs={makeIndex().runs} value="demo-sma_cross" onChange={onChange} />);
-  expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/Cruzamento de médias/);
+  expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/Golden cross 50\/200/);
   await userEvent.selectOptions(screen.getByRole("combobox", { name: /estratégia/i }), "momentum");
   expect(onChange).toHaveBeenCalledWith("demo-momentum");
 });
 
 test("RunSelector shows readable strategy names, not raw ids", () => {
   render(<RunSelector runs={makeIndex().runs} value="demo-sma_cross" onChange={() => {}} />);
-  expect(screen.getByRole("option", { name: /Cruzamento de médias/ })).toBeInTheDocument();
+  expect(screen.getByRole("option", { name: /Golden cross 50\/200/ })).toBeInTheDocument();
   expect(screen.queryByRole("option", { name: /sma_cross/ })).not.toBeInTheDocument();
 });
 

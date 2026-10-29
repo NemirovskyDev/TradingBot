@@ -1,20 +1,25 @@
-/* Tokens do painel: direção "padrão da categoria", claro, cinza-azulado. Todo texto passa AA sobre o fundo claro. */
+/* Tokens do painel: direção "padrão da categoria", tema escuro (grafite azulado). Todo texto passa AA sobre os fundos escuros. */
 :root {
   --font: "Hanken Grotesk Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  --ground: #f6f8fa;
-  --surface: #ffffff;
-  --line: #dfe5ec;
-  --ink: #14202b;
-  --ink-soft: #4a5866;
-  --action: #1d4ed8;
-  --action-ink: #ffffff;
-  --gain: #13734a;
-  --loss: #b3261e;
-  --alert: #b45309;
-  --gain-wash: #e7f4ec;
-  --loss-wash: #fbebe9;
-  --action-wash: #e8eefc;
+  --ground: #0b1118;
+  --surface: #121a23;
+  --raised: #1c2733;
+  --line: #243241;
+  --line-strong: #5b6e83;
+  --ink: #e8eef4;
+  --ink-soft: #9fb0c0;
+  --action: #7cb2ff;
+  --action-hover: #a3c8ff;
+  --action-ink: #08111c;
+  --gain: #3ddc97;
+  --loss: #ff7b7b;
+  --alert: #f5a524;
+  --gain-wash: #0f2a20;
+  --loss-wash: #2d1619;
+  --loss-line: #6b2d31;
+  --action-wash: #132641;
+  --benchmark: #8fa1b3;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -25,7 +30,7 @@
   --space-7: 3rem;
 
   --radius: 8px;
-  --shadow: 0 1px 2px rgb(20 32 43 / 0.06), 0 4px 14px rgb(20 32 43 / 0.06);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.45), 0 6px 18px rgb(0 0 0 / 0.35);
 
   --text-sm: 0.8125rem;
   --text-base: 0.9375rem;
@@ -41,7 +46,7 @@
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
   accent-color: var(--action);
 }
 

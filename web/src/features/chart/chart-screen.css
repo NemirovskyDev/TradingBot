@@ -13,7 +13,7 @@
   max-height: 20rem; /* lista longa rola dentro do painel em vez de esticar a página */
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #b9c4d0 transparent;
+  scrollbar-color: var(--line-strong) transparent;
   display: grid;
   gap: var(--space-2);
   margin: var(--space-3) 0 0;
@@ -41,7 +41,7 @@
   white-space: nowrap;
 }
 .trade-list button:hover {
-  border-color: #b9c4d0;
+  border-color: var(--line-strong);
   background: var(--ground);
 }
 .trade-list button[aria-pressed="true"] {
@@ -98,7 +98,7 @@
 .prompt {
   margin: 0;
   padding: var(--space-4);
-  border: 1px dashed #b9c4d0;
+  border: 1px dashed var(--line-strong);
   border-radius: var(--radius);
   color: var(--ink-soft);
 }

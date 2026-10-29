@@ -19,14 +19,14 @@ export interface ChartColors {
 
 export function chartColors(): ChartColors {
   return {
-    ink: cssVar("--ink", "#14202b"),
-    inkSoft: cssVar("--ink-soft", "#4a5866"),
-    line: cssVar("--line", "#dfe5ec"),
-    surface: cssVar("--surface", "#ffffff"),
-    action: cssVar("--action", "#1d4ed8"),
-    gain: cssVar("--gain", "#13734a"),
-    loss: cssVar("--loss", "#b3261e"),
-    benchmark: "#6b7a8a", // cinza com contraste ≥3:1 sobre o branco, para a linha tracejada
+    ink: cssVar("--ink", "#e8eef4"),
+    inkSoft: cssVar("--ink-soft", "#9fb0c0"),
+    line: cssVar("--line", "#243241"),
+    surface: cssVar("--surface", "#121a23"),
+    action: cssVar("--action", "#7cb2ff"),
+    gain: cssVar("--gain", "#3ddc97"),
+    loss: cssVar("--loss", "#ff7b7b"),
+    benchmark: cssVar("--benchmark", "#8fa1b3"), // contraste ≥3:1 sobre a superfície, para a linha tracejada
   };
 }
 

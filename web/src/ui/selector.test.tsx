@@ -30,7 +30,7 @@ test("asset options show the ticker and the name", () => {
 test("the strategy select lists only the strategies of the current asset, in plain Portuguese", () => {
   setup("btc_usd-sma_cross");
   const options = within(strategy()).getAllByRole("option");
-  expect(options.map((o) => o.textContent)).toEqual(["Cruzamento de médias"]);
+  expect(options.map((o) => o.textContent)).toEqual(["Golden cross 50/200"]);
   expect(asset()).toHaveValue("BTC-USD");
 });
 

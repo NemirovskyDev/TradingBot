@@ -2,6 +2,11 @@ import type {
   BlockedSignal,
   EquityPoint,
   Metrics,
+  AnnualReturn,
+  Portfolio,
+  PortfolioData,
+  PortfolioMetrics,
+  PortfolioSeries,
   Price,
   Run,
   RunIndex,
@@ -219,4 +224,86 @@ export function parseIndex(json: unknown): RunIndex {
   const runs = list(r.runs, "runs", parseRunRef);
   uniqueSafeIds(runs.map((x) => x.id), "runs");
   return { schema: SUPPORTED_SCHEMA, runs };
+}
+
+function nullableNum(v: unknown, path: string): number | null {
+  return v === null ? null : num(v, path);
+}
+
+function parsePortfolioMetrics(v: unknown, p: string): PortfolioMetrics {
+  const r = rec(v, p);
+  return {
+    total_return: nullableNum(r.total_return, `${p}.total_return`),
+    cagr: nullableNum(r.cagr, `${p}.cagr`),
+    volatility: nullableNum(r.volatility, `${p}.volatility`),
+    max_drawdown: nullableNum(r.max_drawdown, `${p}.max_drawdown`),
+    sharpe: nullableNum(r.sharpe, `${p}.sharpe`),
+  };
+}
+
+function parseAnnual(v: unknown, p: string): AnnualReturn {
+  const r = rec(v, p);
+  return { year: num(r.year, `${p}.year`), return: nullableNum(r.return, `${p}.return`), partial: bool(r.partial, `${p}.partial`) };
+}
+
+function parsePortfolioSeries(v: unknown, p: string, points: number): PortfolioSeries {
+  const r = rec(v, p);
+  const series = (key: "equity" | "drawdown") => {
+    const values = list(r[key], `${p}.${key}`, num);
+    // o gráfico pareia cada valor com a data de mesmo índice: tamanhos diferentes embaralhariam a curva
+    if (values.length !== points) fail(`${p}.${key}`, `${points} valores, um por data`);
+    return values;
+  };
+  return {
+    id: str(r.id, `${p}.id`),
+    name: str(r.name, `${p}.name`),
+    equity: series("equity"),
+    drawdown: series("drawdown"),
+    metrics: parsePortfolioMetrics(r.metrics, `${p}.metrics`),
+    annual_returns: list(r.annual_returns, `${p}.annual_returns`, parseAnnual),
+  };
+}
+
+function parsePortfolio(v: unknown, p: string, points: number): Portfolio {
+  const r = rec(v, p);
+  const rebalance = r.rebalance;
+  if (rebalance !== "yearly" && rebalance !== "monthly") fail(`${p}.rebalance`, '"yearly" ou "monthly"');
+  return {
+    ...parsePortfolioSeries(v, p, points),
+    author: str(r.author, `${p}.author`),
+    summary: str(r.summary, `${p}.summary`),
+    rule: str(r.rule, `${p}.rule`),
+    rebalance,
+    components: list(r.components, `${p}.components`, (x, q) => {
+      const c = rec(x, q);
+      return { label: str(c.label, `${q}.label`), weight: num(c.weight, `${q}.weight`) };
+    }),
+    universe: list(r.universe, `${p}.universe`, str),
+  };
+}
+
+export function parsePortfolios(json: unknown): PortfolioData {
+  const r = rec(json, "carteiras");
+  if (r.schema !== SUPPORTED_SCHEMA) {
+    throw new DataError(`Versão dos dados incompatível: o painel espera a versão ${SUPPORTED_SCHEMA}, recebeu ${String(r.schema)}.`);
+  }
+  if (r.currency !== "BRL") fail("currency", '"BRL"');
+  const dates = list(r.dates, "dates", isoDate);
+  if (dates.length < 2) fail("dates", "pelo menos duas datas");
+  ascendingDates(dates.map((date) => ({ date })), "dates");
+  const portfolios = list(r.portfolios, "portfolios", (x, p) => parsePortfolio(x, p, dates.length));
+  if (portfolios.length === 0) fail("portfolios", "pelo menos uma carteira");
+  const benchmarks = list(r.benchmarks, "benchmarks", (x, p) => parsePortfolioSeries(x, p, dates.length));
+  uniqueSafeIds([...portfolios, ...benchmarks].map((x) => x.id), "portfolios");
+  return {
+    schema: SUPPORTED_SCHEMA,
+    currency: "BRL",
+    generated_at: isoDate(r.generated_at, "generated_at"),
+    start: isoDate(r.start, "start"),
+    end: isoDate(r.end, "end"),
+    dates,
+    assumptions: list(r.assumptions, "assumptions", str),
+    portfolios,
+    benchmarks,
+  };
 }

@@ -1,20 +1,25 @@
 ---
 name: TradingBot
-description: Painel claro e didático de um robô de trading simulado, com o acabamento do padrão da categoria.
+description: Painel escuro e didático de backtests (carteiras e estratégias) com dados reais, com o acabamento do padrão da categoria.
 colors:
-  ground: "#f6f8fa"
-  surface: "#ffffff"
-  line: "#dfe5ec"
-  ink: "#14202b"
-  ink-soft: "#4a5866"
-  action: "#1d4ed8"
-  action-ink: "#ffffff"
-  action-wash: "#e8eefc"
-  gain: "#13734a"
-  gain-wash: "#e7f4ec"
-  loss: "#b3261e"
-  loss-wash: "#fbebe9"
-  alert: "#b45309"
+  ground: "#0b1118"
+  surface: "#121a23"
+  raised: "#1c2733"
+  line: "#243241"
+  line-strong: "#5b6e83"
+  ink: "#e8eef4"
+  ink-soft: "#9fb0c0"
+  action: "#7cb2ff"
+  action-hover: "#a3c8ff"
+  action-ink: "#08111c"
+  action-wash: "#132641"
+  gain: "#3ddc97"
+  gain-wash: "#0f2a20"
+  loss: "#ff7b7b"
+  loss-wash: "#2d1619"
+  loss-line: "#6b2d31"
+  alert: "#f5a524"
+  benchmark: "#8fa1b3"
 typography:
   display:
     fontFamily: "Hanken Grotesk Variable, system-ui, -apple-system, Segoe UI, sans-serif"
@@ -64,7 +69,7 @@ components:
     height: "40px"
     padding: "0 1rem"
   button-primary-hover:
-    backgroundColor: "#1b44bb"
+    backgroundColor: "{colors.action-hover}"
   nav-item:
     textColor: "{colors.ink-soft}"
     rounded: "{rounded.md}"
@@ -103,11 +108,11 @@ components:
 
 ## Overview
 
-**Creative North Star: "The Daylight Ledger"**
+**Creative North Star: "The Night Ledger"**
 
-Um painel claro, cinza-azulado de luz do dia, que faz o que a categoria espera (régua TradingView, Robinhood, Stripe, Linear) e se diferencia pela clareza didática e pelo acabamento: cada número e cada marcador se explicam em uma frase. Não há fantasia visual. A confiança vem de hierarquia limpa, números tabulares, contraste verificado e honestidade sobre ser uma simulação.
+Um painel escuro, grafite azulado (tema escolhido pelo Bernardo em 2026-10-28, único, sem alternância), que faz o que a categoria espera (régua TradingView, Robinhood, Stripe, Linear) e se diferencia pela clareza didática e pelo acabamento: cada número e cada marcador se explicam em uma frase. Não há fantasia visual. A confiança vem de hierarquia limpa, números tabulares, contraste verificado e honestidade sobre ser uma simulação.
 
-A densidade é média. Uma sans de trabalho, um azul de ação, verde e vermelho só para resultado, âmbar só para alerta. Superfícies brancas sobre fundo cinza-azulado, separadas por linhas finas; sombra suave só nos painéis.
+A densidade é média. Uma sans de trabalho, um azul de ação, verde e vermelho só para resultado, âmbar só para alerta. Superfícies grafite sobre um fundo mais escuro, separadas por linhas finas; sombra suave só nos painéis. Todo texto passa AA (conferido em `contrast.test.ts`).
 
 **Key Characteristics:**
 - Claro, uma única sans autohospedada (Hanken Grotesk Variable via @fontsource-variable), algarismos tabulares no corpo inteiro.
@@ -118,10 +123,10 @@ A densidade é média. Uma sans de trabalho, um azul de ação, verde e vermelho
 
 ## Colors
 
-Cinza-azulado de luz do dia com um azul de ação; verde e vermelho reservados a resultado.
+Grafite azulado com um azul claro de ação; verde e vermelho reservados a resultado.
 
 ### Primary
-- **Azul de Ação** (action): botão primário, item de navegação ativo, links de linha, anel de foco, linha de capital, linha de entrada, operação selecionada. Hover do botão em #1b44bb (valor literal no CSS, fora dos tokens).
+- **Azul de Ação** (action): botão primário, item de navegação ativo, links de linha, anel de foco, linha de capital, linha de entrada, operação selecionada. Hover do botão em `action-hover`; o texto do botão usa `action-ink` (escuro).
 - **Lavado de Ação** (action-wash): fundo do aviso de simulação, do selo, do item ativo e da seleção de texto.
 
 ### Secondary
@@ -129,15 +134,15 @@ Cinza-azulado de luz do dia com um azul de ação; verde e vermelho reservados a
 - **Vermelho Perda** (loss) e **Lavado de Perda** (loss-wash): resultado negativo, vela de baixa, marcador de saída com prejuízo, linha de stop.
 
 ### Tertiary
-- **Âmbar Alerta** (alert): veredito não aprovado (ícone). Só texto/ícone sobre branco.
+- **Âmbar Alerta** (alert): veredito não aprovado (ícone). Só texto/ícone sobre as superfícies escuras.
 
 ### Neutral
-- **Fundo Cinza-Azulado** (ground): fundo da página, hover de linha, faixa do filtro.
-- **Superfície Branca** (surface): painéis, navegação, campos.
+- **Fundo Grafite** (ground): fundo da página, hover de linha, faixa do filtro.
+- **Superfície** (surface): painéis, navegação, campos. **Elevada** (raised): tooltip de glossário, link de pular ao conteúdo, selo de referência.
 - **Linha** (line): todas as bordas e divisórias de 1px.
-- **Tinta** (ink): texto principal e fundo do tooltip de glossário.
+- **Tinta** (ink): texto principal.
 - **Tinta Suave** (ink-soft): rótulos, textos secundários, navegação inativa.
-- Literais fora dos tokens, reutilizados: #b9c4d0 (borda em hover, rolagem, pausa tracejada), #6b7a8a (benchmark tracejado, 3:1 sobre branco), #e6b7b3 (borda de erro).
+- **Linha forte** (line-strong, 3:1 sobre a superfície): borda de controles, rolagem, pausa tracejada. **Benchmark** (benchmark, 3:1): linhas de referência dos gráficos. **Linha de perda** (loss-line): borda de erro.
 
 ### Named Rules
 **The Result-Only Color Rule.** Verde e vermelho significam resultado financeiro e nada mais; ação e navegação usam o azul.
@@ -171,7 +176,7 @@ Alvos de toque: 40px (botões, selects, nav), 44px (itens de lista de operaçõe
 
 ## Elevation & Depth
 
-Híbrido discreto: profundidade vem de borda de 1px mais fundo branco sobre cinza; uma sombra suave e difusa só nos painéis e no tooltip.
+Híbrido discreto: profundidade vem de borda de 1px mais fundo um pouco mais claro sobre o fundo escuro; uma sombra suave e difusa só nos painéis e no tooltip.
 
 ### Shadow Vocabulary
 - **Painel** (`box-shadow: 0 1px 2px rgb(20 32 43 / 0.06), 0 4px 14px rgb(20 32 43 / 0.06)`): painéis e tooltip de glossário.
@@ -188,8 +193,8 @@ Raio pequeno e uniforme: 8px (`--radius`) para painéis, botões, campos, itens 
 
 ### Buttons
 - **Shape:** raio 8px, altura mínima 40px, padding 0 1rem, peso 600.
-- **Primary:** fundo azul de ação, texto branco; hover #1b44bb em 120ms ease-out (texto branco mantém AA, testado).
-- **Controles ocultos:** botões de ordenar, de dica e de filtro são sem fundo; filtro segmentado marca o ativo com fundo branco e sombra de segmento.
+- **Primary:** fundo azul de ação, texto escuro (`action-ink`); hover `action-hover` em 120ms ease-out (AA testado).
+- **Controles ocultos:** botões de ordenar, de dica e de filtro são sem fundo; filtro segmentado marca o ativo com fundo elevado e sombra de segmento.
 
 ### Shell e navegação
 Barra lateral branca com borda direita; itens de 40px, texto tinta suave, peso 560; hover com fundo cinza; página atual (`aria-current="page"`) com lavado de ação e texto azul. Cinco rotas por hash: Visão geral, Gráfico, Operações, Risco, Glossário. Link "pular para o conteúdo" visível ao receber foco. No celular, barra inferior.
@@ -201,7 +206,7 @@ h1 em headline (ticker sem sufixos técnicos, mais a estratégia) com selo pílu
 Um painel sem padding com quatro itens divididos por linha de 1px; rótulo (label, tinta suave), valor (headline) em verde ou vermelho conforme sinal, detalhe com comparação ao buy and hold. O valor usa contagem animada.
 
 ### Painéis e veredito
-Painel: branco, borda, 8px, padding 1.5rem, sombra de painel. Veredito: título com ícone (verde aprovado, âmbar não aprovado), razões em lista, nota final separada por linha.
+Painel: superfície, borda, 8px, padding 1.5rem, sombra de painel. Veredito: título com ícone (verde aprovado, âmbar não aprovado), razões em lista, nota final separada por linha.
 
 ### Tabela ordenável
 Cabeçalhos em botão com marca de ordenação, linhas com divisória e hover cinza, colunas numéricas à direita. No celular o cabeçalho some, cada linha vira cartão com rótulo (`data-label`) antes do valor e um select de ordenação aparece.
@@ -210,13 +215,13 @@ Cabeçalhos em botão com marca de ordenação, linhas com divisória e hover ci
 Painel lateral: título, lista "por quê" com rótulo/valor, fatos em 2 colunas sob divisória; lista de operações com botões de 44px, selecionado com borda azul e lavado de ação (`aria-pressed`). Resultado em verde/vermelho/cinza com palavra junto.
 
 ### Dica de glossário
-Termo com sublinhado pontilhado; tooltip escuro (tinta, texto branco, 18rem, 8px) abaixo do termo.
+Termo com sublinhado pontilhado; tooltip elevado (`raised`, texto `ink`, 18rem, 8px) abaixo do termo.
 
 ### Estados
-Vazio/erro/carregando em caixa com borda (erro com borda #e6b7b3) ou variante plana; carregando com spinner de 18px (800ms, parado com movimento reduzido); texto com título em 650 e detalhe em label.
+Vazio/erro/carregando em caixa com borda (erro com borda `loss-line`) ou variante plana; carregando com spinner de 18px (800ms, parado com movimento reduzido); texto com título em 650 e detalhe em label.
 
 ### Gráficos
-Curva de capital em azul de ação contra benchmark cinza tracejado (#6b7a8a), legenda com amostras de linha. Velas: alta vazada (preenchimento branco, borda e pavio verdes), baixa cheia vermelha. Marcadores: seta para cima abaixo da barra (compra), seta para baixo acima (saída); só o selecionado leva texto e tamanho maior. Linhas tracejadas de Entrada (azul) e Stop (vermelho) para a operação selecionada. Grade só horizontal em `--line`, sem borda de escala, rótulos 12px tinta suave, locale pt-BR, roda do mouse não escala. Cada gráfico tem tabela de dados equivalente em `<details>` e legenda OHLC ao passar o cursor.
+Curva de capital em azul de ação contra benchmark tracejado (`benchmark`), legenda com amostras de linha. Velas: alta vazada (preenchimento da cor da superfície, borda e pavio verdes), baixa cheia vermelha. Marcadores: seta para cima abaixo da barra (compra), seta para baixo acima (saída); só o selecionado leva texto e tamanho maior. Linhas tracejadas de Entrada (azul) e Stop (vermelho) para a operação selecionada. Grade só horizontal em `--line`, sem borda de escala, rótulos 12px tinta suave, locale pt-BR, roda do mouse não escala. Cada gráfico tem tabela de dados equivalente em `<details>` e legenda OHLC ao passar o cursor.
 
 ### Aviso de simulação
 Faixa fina no topo de toda tela (`role="note"`, lavado de ação, centralizada): "Simulação com dados históricos, sem envio de ordens. Não é recomendação de investimento." O rodapé credita Yahoo Finance (via yfinance), diz que os dados não são em tempo real e credita o TradingView.
@@ -238,6 +243,9 @@ Biblioteca `motion` importada só em `web/src/motion/index.tsx`. Easing de saíd
 - **Don't** aninhar painéis com borda e sombra; use divisórias.
 - **Don't** usar verde ou vermelho fora de resultado financeiro.
 - **Don't** introduzir uma segunda família, display face ou monospace decorativa.
-- **Don't** usar texto em cinza mais claro que `ink-soft` sobre fundos claros.
+- **Don't** usar texto em cinza mais escuro que `ink-soft` sobre os fundos escuros.
 - **Don't** esconder conteúdo atrás de animação sem a saída de segurança.
 - **Don't** apresentar o painel como recomendação de investimento.
+
+### Carteiras
+Tela inicial (`#/carteiras`, `Carteiras` em primeiro na navegação). Comparativo ordenável (7 carteiras e 3 referências, selo "Referência"), seletor em chips de rádio (`fieldset`, foco visível), painel de detalhe com frase de leitura, métricas, gráfico, composição, regra e tabela ano a ano. O gráfico das carteiras usa escala logarítmica (com nota ao lado) e distingue as referências pelo formato da linha (tracejada, pontilhada, tracejada longa), não só pela cor; a carteira escolhida é a linha azul sólida e grossa. A tabela comparativa rola dentro do painel em telas médias e vira cartões no celular. A navegação do celular tem 6 colunas.

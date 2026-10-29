@@ -78,3 +78,22 @@ def test_analysis_text_distinguishes_failed_sections_from_no_data():
                         available=True, failed=["sentimento"])
     text = cli._analysis_text(rep)
     assert "falha na consulta" in text and text.count("sem dados nesta seção") == 2
+
+
+def test_export_portfolios_writes_the_file_and_reports_failures(tmp_path, monkeypatch):
+    import numpy as np
+    import pandas as pd
+
+    from tradingbot import cli
+
+    idx = pd.bdate_range("2010-01-04", periods=252 * 4)
+    cols = {n: np.linspace(100, 150, len(idx)) for n in ("BOVA11", "IVVB11", "FII", "VTI", "VBR", "VXUS", "EFA", "VNQ", "TLT", "IEF", "SHY", "BND", "GLD", "DBC")}
+    cols["CDI"] = np.cumprod(np.full(len(idx), 1.0004))
+    monkeypatch.setattr(cli, "build_price_table", lambda start, end: pd.DataFrame(cols, index=idx))
+    assert cli.main(["export", "--portfolios", "--out", str(tmp_path)]) == 0
+    assert (tmp_path / "portfolios.json").exists()
+
+    cols["IVVB11"] = np.full(len(idx), np.nan)
+    (tmp_path / "portfolios.json").unlink()
+    assert cli.main(["export", "--portfolios", "--out", str(tmp_path)]) == 2
+    assert not (tmp_path / "portfolios.json").exists()

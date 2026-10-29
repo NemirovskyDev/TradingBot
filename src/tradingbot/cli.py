@@ -13,7 +13,9 @@ from tradingbot.data import DataError, get_prices
 from tradingbot.demo import make_synthetic_prices
 from tradingbot.evaluate import Evaluation, PromotionCriteria, evaluate_detailed
 from tradingbot.export import export_run, publish, write_index
+from tradingbot.export_portfolios import export_portfolios
 from tradingbot.export_real import MAX_SKIPPED_FRACTION, export_real, strategy_params
+from tradingbot.portfolio_data import build_price_table
 from tradingbot.strategies import STRATEGIES
 
 DISCLAIMER = "Simulação com dados históricos. Não é recomendação de investimento."
@@ -99,7 +101,21 @@ def _cmd_export(args: argparse.Namespace) -> int:
     except (FileNotFoundError, ValueError) as exc:
         print(f"Erro de configuração: {exc}", file=sys.stderr)
         return 2
+    if args.portfolios:
+        return _export_portfolios(args)
     return _export_real(args, cfg) if args.real else _export_synthetic(args, cfg)
+
+
+def _export_portfolios(args: argparse.Namespace) -> int:
+    """Baixa os instrumentos das carteiras, roda as metodologias e grava portfolios.json (o arquivo antigo fica se algo falhar)."""
+    try:
+        table = build_price_table(date.fromisoformat(args.history_start), date.fromisoformat(args.end))
+        path = export_portfolios(table, Path(args.out))
+    except ValueError as exc:  # datas inválidas ou sem janela comum
+        print(f"Erro nas carteiras (nada foi gravado): {exc}", file=sys.stderr)
+        return 2
+    print(f"Carteiras gravadas em {path}")
+    return 0
 
 
 def _export_real(args: argparse.Namespace, cfg) -> int:
@@ -185,11 +201,13 @@ def build_parser() -> argparse.ArgumentParser:
     mode = ex.add_mutually_exclusive_group(required=True)
     mode.add_argument("--real", action="store_true", help="baixa os ativos do catálogo e roda as 3 estratégias em cada um")
     mode.add_argument("--synthetic", action="store_true", help="usa dados sintéticos rotulados")
+    mode.add_argument("--portfolios", action="store_true", help="roda as 7 metodologias de carteira (ARCA e outras) e grava portfolios.json")
     ex.add_argument("--out", default="web/public/data")
     ex.add_argument("--config", default="config.toml")
     ex.add_argument("--catalog", default=str(DEFAULT_PATH))
     ex.add_argument("--start", default="2018-01-01")
     ex.add_argument("--end", default=date.today().isoformat())
+    ex.add_argument("--history-start", default="2004-01-01", help="início do histórico baixado para as carteiras (as regras de tendência precisam de anos de aquecimento)")
     ex.add_argument("--limit", type=int, default=0, help="só os N primeiros ativos do catálogo (para testar)")
     ex.set_defaults(func=_cmd_export)
 

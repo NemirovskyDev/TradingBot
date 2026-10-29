@@ -51,7 +51,7 @@ def test_real_export_writes_three_runs_per_asset_and_skips_failures(setup, capsy
     code, out = _run(tmp_path, catalog)
     assert code == 0
     ids = sorted(r["id"] for r in _index(out)["runs"])
-    assert ids == sorted(f"{s}-{strat}" for s in ("aaa", "bbb_sa") for strat in ("momentum", "rsi_reversion", "sma_cross"))
+    assert ids == sorted(f"{s}-{strat}" for s in ("aaa", "bbb_sa") for strat in ("donchian", "momentum", "sma_cross"))
     text = capsys.readouterr().out
     assert "BAD" in text and "SHORT" in text  # os ignorados são listados, com o motivo
 
