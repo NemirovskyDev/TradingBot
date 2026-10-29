@@ -7,13 +7,23 @@ name = "tradingbot"
 version = "0.1.0"
 description = "Assistente de investimento e backtest de estratégias de swing (fase 1, sem ordens)."
 requires-python = ">=3.11"
-dependencies = ["pandas>=2.2", "numpy>=1.26", "yfinance>=0.2.40", "anthropic>=0.40"]
+dependencies = [
+  "pandas>=2.2",
+  "numpy>=1.26",
+  "yfinance>=0.2.40",
+  "anthropic>=0.40",
+  "requests>=2.31",
+  "lxml>=5",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+tradingbot = ["assets.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

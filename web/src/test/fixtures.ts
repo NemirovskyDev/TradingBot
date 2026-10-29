@@ -63,6 +63,28 @@ export function makeRun(overrides: Partial<Run> = {}): Run {
   };
 }
 
+/** Índice como o da exportação real: 3 ativos em 2 categorias, 3 estratégias (o último ativo só tem 2). */
+export function makeCatalogIndex(): RunIndex {
+  const run = (id: string, ticker: string, name: string, category: string, strategy: string) => ({
+    id,
+    ticker,
+    strategy,
+    label: `${name} · ${strategy}`,
+    name,
+    category,
+  });
+  return {
+    schema: 1,
+    runs: [
+      run("aapl-momentum", "AAPL", "Apple", "Ações EUA", "momentum"),
+      run("aapl-sma_cross", "AAPL", "Apple", "Ações EUA", "sma_cross"),
+      run("petr4_sa-momentum", "PETR4.SA", "Petrobras PN", "Ações B3", "momentum"),
+      run("petr4_sa-sma_cross", "PETR4.SA", "Petrobras PN", "Ações B3", "sma_cross"),
+      run("btc_usd-sma_cross", "BTC-USD", "Bitcoin", "Cripto", "sma_cross"),
+    ],
+  };
+}
+
 export function makeIndex(): RunIndex {
   return {
     schema: 1,

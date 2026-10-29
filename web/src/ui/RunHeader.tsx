@@ -1,5 +1,5 @@
 import { formatDate } from "../data/format";
-import { strategyLabel } from "../data/labels";
+import { displayTicker, strategyLabel } from "../data/labels";
 import type { Run, RunRef } from "../data/types";
 import { Hint } from "./Hint";
 import { RunSelector } from "./RunSelector";
@@ -21,13 +21,19 @@ export function RunHeader({ run, runs, value, onChange }: RunHeaderProps) {
     <header className="run-header">
       <div>
         <h1>
-          {ticker} · {strategyLabel(strategy)}
+          {displayTicker(ticker)} · {strategyLabel(strategy)}
           {run?.meta.synthetic && (
             <span className="badge" title="Dados sintéticos gerados para demonstração">
               Exemplo
             </span>
           )}
         </h1>
+        {ref?.name && (
+          <p className="run-asset">
+            {ref.name}
+            {ref.category && <span className="run-category"> · {ref.category}</span>}
+          </p>
+        )}
         {run && (
           <p className="run-sub">
             <Hint term="fora_amostra">Trecho de teste</Hint>, de {formatDate(run.meta.start)} a {formatDate(run.meta.end)}

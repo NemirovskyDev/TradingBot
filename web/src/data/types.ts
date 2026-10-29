@@ -5,6 +5,9 @@ export interface RunRef {
   ticker: string;
   strategy: string;
   label: string;
+  /** Nome do ativo e categoria (Ações EUA, FIIs, Cripto...); ausentes nos dados de exemplo. */
+  name?: string;
+  category?: string;
 }
 
 export interface RunIndex {

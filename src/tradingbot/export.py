@@ -90,3 +90,14 @@ def export_run(
 
 def write_index(out_dir: Path, runs: list[dict]) -> Path:
     return _write(Path(out_dir) / "index.json", {"schema": SCHEMA, "runs": runs})
+
+
+def publish(out_dir: Path, runs: list[dict], prune: bool = True) -> Path:
+    """Grava o índice e, se `prune`, apaga de runs/ só os arquivos de execuções que não estão no índice novo."""
+    out = Path(out_dir)
+    if prune:
+        keep = {f"{r['id']}.json" for r in runs}
+        for stale in (out / "runs").glob("*.json"):
+            if stale.name not in keep:
+                stale.unlink()
+    return write_index(out, runs)

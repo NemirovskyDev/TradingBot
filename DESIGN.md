@@ -195,7 +195,7 @@ Raio pequeno e uniforme: 8px (`--radius`) para painéis, botões, campos, itens 
 Barra lateral branca com borda direita; itens de 40px, texto tinta suave, peso 560; hover com fundo cinza; página atual (`aria-current="page"`) com lavado de ação e texto azul. Cinco rotas por hash: Visão geral, Gráfico, Operações, Risco, Glossário. Link "pular para o conteúdo" visível ao receber foco. No celular, barra inferior.
 
 ### Cabeçalho da execução e seletor
-h1 em headline com selo pílula "exemplo" quando os dados são sintéticos; sub-linha em tinta suave; seletores (select nativo estilizado, borda `--line`, altura 40px, rótulo acima) alinhados à direita e quebrando linha em telas estreitas.
+h1 em headline (ticker sem sufixos técnicos, mais a estratégia) com selo pílula "exemplo" quando os dados são sintéticos; abaixo, o nome do ativo e a categoria, e a sub-linha do trecho de teste em tinta suave. Dois seletores nativos lado a lado, "Ativo" (agrupado por categoria com optgroup) e "Estratégia" (só as do ativo), com borda `--line`, altura 40px e rótulo acima; ocupam a linha toda e quebram em telas estreitas, sem passar da largura.
 
 ### Faixa de métricas
 Um painel sem padding com quatro itens divididos por linha de 1px; rótulo (label, tinta suave), valor (headline) em verde ou vermelho conforme sinal, detalhe com comparação ao buy and hold. O valor usa contagem animada.
@@ -219,7 +219,7 @@ Vazio/erro/carregando em caixa com borda (erro com borda #e6b7b3) ou variante pl
 Curva de capital em azul de ação contra benchmark cinza tracejado (#6b7a8a), legenda com amostras de linha. Velas: alta vazada (preenchimento branco, borda e pavio verdes), baixa cheia vermelha. Marcadores: seta para cima abaixo da barra (compra), seta para baixo acima (saída); só o selecionado leva texto e tamanho maior. Linhas tracejadas de Entrada (azul) e Stop (vermelho) para a operação selecionada. Grade só horizontal em `--line`, sem borda de escala, rótulos 12px tinta suave, locale pt-BR, roda do mouse não escala. Cada gráfico tem tabela de dados equivalente em `<details>` e legenda OHLC ao passar o cursor.
 
 ### Aviso de simulação
-Faixa fina no topo de toda tela (`role="note"`, lavado de ação, centralizada): "Simulação com dados de exemplo. Não é recomendação de investimento."
+Faixa fina no topo de toda tela (`role="note"`, lavado de ação, centralizada): "Simulação com dados históricos, sem envio de ordens. Não é recomendação de investimento." O rodapé credita Yahoo Finance (via yfinance), diz que os dados não são em tempo real e credita o TradingView.
 
 ### Movimento
 Biblioteca `motion` importada só em `web/src/motion/index.tsx`. Easing de saída exponencial (0.16, 1, 0.3, 1). Revelação: sobe 14px e aparece em 500ms, com atraso por bloco. Contagem das métricas: 900ms. Gráfico se desenha da esquerda para a direita em 1100ms (clip-path). Marcador selecionado pulsa uma vez (tamanho 3 por 260ms, depois 2). Transições de estado: 120ms ease-out. Segurança: todo efeito tem temporizador de duração + 300ms que para a animação e fixa o estado final (conteúdo visível, número final). Com `prefers-reduced-motion: reduce` os hooks pulam a animação, o CSS zera animações e transições globalmente e o spinner para.

@@ -19,14 +19,15 @@ Painel que mostra, de forma visual e explicada, o que o TradingBot faz: o gráfi
 Um painel de trading que explica cada decisão em linguagem simples e é honesto sobre os limites (simulação, sem recomendação de investimento), em vez de prometer lucro.
 
 ## Operating Context
-Demo estática pública (GitHub Pages) lendo JSON pré-gerado pelo backtest. Na fase 2 (paper trading) o mesmo painel poderá ler posições da conta paper, só em modo local. O backend Python e a spec estão em `docs/superpowers/`.
+Site estático público (GitHub Pages) lendo JSON pré-gerado pelo backtest com dados históricos reais (`python -m tradingbot export --real`). Na fase 2 (paper trading) o mesmo painel poderá ler posições da conta paper, só em modo local. O backend Python está em `src/tradingbot`; o README explica como regenerar os dados.
 
 ## Capabilities and Constraints
 - Fase 1 não envia ordens: "comprando/vendendo" significa trades simulados do backtest.
 - Sem backend e sem chaves no repositório; o painel público nunca conecta a conta real.
 - Aviso visível de "simulação, não é recomendação de investimento".
 - Cada trade tem uma frase de explicação; métricas têm glossário rápido.
-- Dados de exemplo ainda não existem (o backtest não foi implementado).
+- Escopo reduzido (2026-10-28): vitrine de portfólio com dados históricos reais e estáticos, sem tempo real e sem backend na nuvem. O catálogo tem cerca de 200 ativos (ações dos EUA e da B3, ETFs, FIIs e cripto), cada um com 3 estratégias.
+- Fonte dos preços: Yahoo Finance via yfinance (uso educacional, com aviso de fonte; os termos do Yahoo restringem redistribuição, risco aceito conscientemente pelo Bernardo). Listas de ativos: Wikipedia (S&P 500) e brapi.dev (Ibovespa e FIIs).
 
 ## Brand Commitments
 - Repositório próprio no GitHub com demo publicada; o Portfólio do Bernardo aponta para ele (integração direta pode vir depois).
@@ -36,7 +37,7 @@ Demo estática pública (GitHub Pages) lendo JSON pré-gerado pelo backtest. Na 
 - Cores de texto precisam passar WCAG AA: usar verde `#13734a`, vermelho `#b3261e` e laranja `#c2410c` ou mais escuros sobre fundo claro (o detector reprovou tons mais claros).
 
 ## Evidence on Hand
-Nenhuma. Não existem resultados de backtest, números de desempenho, depoimentos nem usuários. Nada disso pode ser inventado na interface; os dados de demo devem ser rotulados como exemplo.
+Os resultados de backtest dos ~200 ativos reais, exportados em `web/public/data` (os números são de simulações com dados históricos, não de operações reais). Não existem depoimentos nem usuários: nada disso pode ser inventado na interface. Execuções sintéticas (só nos testes) devem ser rotuladas como exemplo.
 
 ## Product Principles
 1. Explicar antes de impressionar: cada gráfico e número tem uma leitura em linguagem simples.

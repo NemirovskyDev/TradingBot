@@ -62,7 +62,7 @@ test("choosing another run loads it", async () => {
   stubFetch(happyPath);
   render(<App />);
   await screen.findByText("12,4%");
-  await userEvent.selectOptions(screen.getByRole("combobox", { name: /execução/i }), "demo-momentum");
+  await userEvent.selectOptions(screen.getByRole("combobox", { name: /estratégia/i }), "momentum");
   expect(await screen.findByText("Passou")).toBeInTheDocument();
 });
 
@@ -102,7 +102,7 @@ test("the run selector stays available when the run fails to load, so the user c
   stubFetch((url) => (url.endsWith("demo-sma_cross.json") ? json({ meta: {} }) : happyPath(url)));
   render(<App />);
   expect(await screen.findByRole("alert")).toBeInTheDocument();
-  await userEvent.selectOptions(screen.getByRole("combobox", { name: /execução/i }), "demo-momentum");
+  await userEvent.selectOptions(screen.getByRole("combobox", { name: /estratégia/i }), "momentum");
   expect(await screen.findByText("12,4%")).toBeInTheDocument();
 });
 
@@ -111,7 +111,7 @@ test("switching run clears the selected trade from the link", async () => {
   window.location.hash = "#/grafico?trade=t2";
   render(<App />);
   await screen.findByText("O preço tocou o stop de proteção.");
-  await userEvent.selectOptions(screen.getByRole("combobox", { name: /execução/i }), "demo-momentum");
+  await userEvent.selectOptions(screen.getByRole("combobox", { name: /estratégia/i }), "momentum");
   await waitFor(() => expect(window.location.hash).toBe("#/grafico"));
 });
 

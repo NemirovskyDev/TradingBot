@@ -76,9 +76,9 @@ test("EmptyState shows title and hint", () => {
 test("RunSelector lists runs and emits the chosen id", async () => {
   const onChange = vi.fn();
   render(<RunSelector runs={makeIndex().runs} value="demo-sma_cross" onChange={onChange} />);
-  const select = screen.getByRole("combobox", { name: /execução/i });
-  expect(select).toHaveValue("demo-sma_cross");
-  await userEvent.selectOptions(select, "demo-momentum");
+  const select = screen.getByRole("combobox", { name: /estratégia/i });
+  expect(select).toHaveValue("sma_cross");
+  await userEvent.selectOptions(select, "momentum");
   expect(onChange).toHaveBeenCalledWith("demo-momentum");
 });
 
@@ -141,14 +141,14 @@ test("ErrorState gives a plain-language message, the technical detail and what t
   render(<ErrorState error={new DataError('Campo "meta.ticker" inválido: esperado texto.')} onRetry={() => {}} />);
   const alert = screen.getByRole("alert");
   expect(alert).toHaveTextContent(/meta\.ticker/);
-  expect(alert).toHaveTextContent(/python -m tradingbot export/);
+  expect(alert).toHaveTextContent(/python -m tradingbot export --real/);
 });
 
 test("RunHeader still offers the selector when the run is not loaded", async () => {
   const onChange = vi.fn();
   render(<RunHeader runs={makeIndex().runs} value="demo-sma_cross" onChange={onChange} />);
   expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/Cruzamento de médias/);
-  await userEvent.selectOptions(screen.getByRole("combobox", { name: /execução/i }), "demo-momentum");
+  await userEvent.selectOptions(screen.getByRole("combobox", { name: /estratégia/i }), "momentum");
   expect(onChange).toHaveBeenCalledWith("demo-momentum");
 });
 
@@ -156,4 +156,10 @@ test("RunSelector shows readable strategy names, not raw ids", () => {
   render(<RunSelector runs={makeIndex().runs} value="demo-sma_cross" onChange={() => {}} />);
   expect(screen.getByRole("option", { name: /Cruzamento de médias/ })).toBeInTheDocument();
   expect(screen.queryByRole("option", { name: /sma_cross/ })).not.toBeInTheDocument();
+});
+
+test("the Shell credits the data sources and says the data is not real time", () => {
+  render(<Shell route="visao-geral">x</Shell>);
+  expect(screen.getByText(/Yahoo Finance/)).toBeInTheDocument();
+  expect(screen.getByText(/não são em tempo real/i)).toBeInTheDocument();
 });

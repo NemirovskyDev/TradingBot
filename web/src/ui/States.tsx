@@ -17,7 +17,7 @@ export function ErrorState({ error, onRetry }: { error: DataError; onRetry: () =
       <p>Os arquivos de dados não puderam ser lidos. Tente de novo ou escolha outra execução.</p>
       <p className="state-detail">Detalhe técnico: {error.message}</p>
       <p className="state-detail">
-        Se o problema continuar, gere os dados de novo com <code>python -m tradingbot export --synthetic</code>.
+        Se o problema continuar, gere os dados de novo com <code>python -m tradingbot export --real</code>.
       </p>
       <button type="button" className="button" onClick={onRetry}>
         Tentar de novo

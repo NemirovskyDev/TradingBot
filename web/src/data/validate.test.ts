@@ -79,6 +79,12 @@ test("parseRun rejects trade ids that would break marker ids (colon, spaces)", (
   }
 });
 
+test("parseIndex keeps optional name and category and rejects non-text values", () => {
+  const run = { id: "a", ticker: "A", strategy: "s", label: "l", name: "Alfa", category: "Cripto" };
+  expect(parseIndex({ schema: 1, runs: [run] }).runs[0]).toMatchObject({ name: "Alfa", category: "Cripto" });
+  expect(() => parseIndex({ schema: 1, runs: [{ ...run, category: 3 }] })).toThrow(/runs\[0\]\.category/);
+});
+
 test("parseIndex rejects duplicate run ids", () => {
   const run = { id: "a", ticker: "A", strategy: "s", label: "l" };
   expect(() => parseIndex({ schema: 1, runs: [run, run] })).toThrow(/runs\[1\]\.id/);

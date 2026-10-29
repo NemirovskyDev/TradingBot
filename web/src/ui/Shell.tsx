@@ -41,11 +41,17 @@ export function Shell({ route, children }: ShellProps) {
           {children}
         </main>
         <footer className="credits">
-          Gráficos com Lightweight Charts™ da{" "}
-          <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">
-            TradingView
-          </a>
-          .
+          <p>
+            Os preços históricos vêm do Yahoo Finance (via yfinance), só para fins educacionais: não são em tempo real e podem ter atrasos e erros.
+            Execuções marcadas como "Exemplo" usam dados sintéticos. Listas de ativos: Wikipedia e brapi.
+          </p>
+          <p>
+            Gráficos com Lightweight Charts™ da{" "}
+            <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">
+              TradingView
+            </a>
+            .
+          </p>
         </footer>
       </div>
     </div>

@@ -1,4 +1,4 @@
-﻿import { formatDate, formatNumber, formatPercent, formatPrice } from "./format";
+import { formatDate, formatNumber, formatPercent, formatPrice } from "./format";
 
 test("formatPercent uses pt-BR decimal comma and a typographic minus", () => {
   expect(formatPercent(0.124)).toBe("12,4%");

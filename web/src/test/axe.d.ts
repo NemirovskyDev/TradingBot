@@ -1,4 +1,4 @@
-﻿import "vitest";
+import "vitest";
 
 // tipo do matcher registrado em test/setup.ts (vitest-axe/matchers)
 declare module "vitest" {

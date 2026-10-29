@@ -200,12 +200,15 @@ export function parseRun(json: unknown): Run {
 
 function parseRunRef(v: unknown, p: string): RunRef {
   const r = rec(v, p);
-  return {
+  const ref: RunRef = {
     id: str(r.id, `${p}.id`),
     ticker: str(r.ticker, `${p}.ticker`),
     strategy: str(r.strategy, `${p}.strategy`),
     label: str(r.label, `${p}.label`),
   };
+  if (r.name !== undefined) ref.name = str(r.name, `${p}.name`);
+  if (r.category !== undefined) ref.category = str(r.category, `${p}.category`);
+  return ref;
 }
 
 export function parseIndex(json: unknown): RunIndex {

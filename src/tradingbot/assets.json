@@ -1,0 +1,1092 @@
+[
+ {
+  "ticker": "AAPL",
+  "name": "Apple",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "MSFT",
+  "name": "Microsoft",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "NVDA",
+  "name": "NVIDIA",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "AMZN",
+  "name": "Amazon",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "GOOGL",
+  "name": "Alphabet (classe A)",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "META",
+  "name": "Meta Platforms",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "TSLA",
+  "name": "Tesla",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "JPM",
+  "name": "JPMorgan Chase",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "V",
+  "name": "Visa",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "KO",
+  "name": "Coca-Cola",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "PEP",
+  "name": "PepsiCo",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "XOM",
+  "name": "Exxon Mobil",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "JNJ",
+  "name": "Johnson & Johnson",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "WMT",
+  "name": "Walmart",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "DIS",
+  "name": "Walt Disney",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "NFLX",
+  "name": "Netflix",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "AMD",
+  "name": "AMD",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "INTC",
+  "name": "Intel",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "BA",
+  "name": "Boeing",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "MCD",
+  "name": "McDonald's",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "SPY",
+  "name": "SPDR S&P 500",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "QQQ",
+  "name": "Invesco QQQ (Nasdaq-100)",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "IWM",
+  "name": "iShares Russell 2000",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "DIA",
+  "name": "SPDR Dow Jones",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "GLD",
+  "name": "SPDR Gold (ouro)",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "SLV",
+  "name": "iShares Silver (prata)",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "TLT",
+  "name": "iShares Treasury 20+ anos",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "EEM",
+  "name": "iShares Mercados Emergentes",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "EFA",
+  "name": "iShares MSCI EAFE",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "VNQ",
+  "name": "Vanguard Imobiliário",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "XLK",
+  "name": "SPDR Tecnologia",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "XLF",
+  "name": "SPDR Financeiro",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "XLE",
+  "name": "SPDR Energia",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "ARKK",
+  "name": "ARK Innovation",
+  "category": "ETFs EUA"
+ },
+ {
+  "ticker": "PETR4.SA",
+  "name": "Petrobras PN",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "VALE3.SA",
+  "name": "Vale ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "ITUB4.SA",
+  "name": "Itaú Unibanco PN",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "BBDC4.SA",
+  "name": "Bradesco PN",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "BBAS3.SA",
+  "name": "Banco do Brasil ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "ABEV3.SA",
+  "name": "Ambev ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "WEGE3.SA",
+  "name": "WEG ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "B3SA3.SA",
+  "name": "B3 ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "RENT3.SA",
+  "name": "Localiza ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "SUZB3.SA",
+  "name": "Suzano ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "RADL3.SA",
+  "name": "Raia Drogasil ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "LREN3.SA",
+  "name": "Lojas Renner ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "GGBR4.SA",
+  "name": "Gerdau PN",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "PRIO3.SA",
+  "name": "PRIO ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "EQTL3.SA",
+  "name": "Equatorial ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "RAIL3.SA",
+  "name": "Rumo ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "CSAN3.SA",
+  "name": "Cosan ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "HAPV3.SA",
+  "name": "Hapvida ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "MGLU3.SA",
+  "name": "Magazine Luiza ON",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "HGLG11.SA",
+  "name": "CSHG Logística",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "XPLG11.SA",
+  "name": "XP Log",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "KNRI11.SA",
+  "name": "Kinea Renda Imobiliária",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "MXRF11.SA",
+  "name": "Maxi Renda",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "VISC11.SA",
+  "name": "Vinci Shopping Centers",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "XPML11.SA",
+  "name": "XP Malls",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "BTLG11.SA",
+  "name": "BTG Pactual Logística",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "HGRU11.SA",
+  "name": "CSHG Renda Urbana",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "KNCR11.SA",
+  "name": "Kinea Rendimentos Imobiliários",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "KNIP11.SA",
+  "name": "Kinea Índices de Preços",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "CPTS11.SA",
+  "name": "Capitânia Securities II",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "VGIR11.SA",
+  "name": "Valora RE III",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "TRXF11.SA",
+  "name": "TRX Real Estate",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "RBRR11.SA",
+  "name": "RBR Rendimento High Grade",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "BOVA11.SA",
+  "name": "iShares Ibovespa",
+  "category": "ETFs B3"
+ },
+ {
+  "ticker": "IVVB11.SA",
+  "name": "iShares S&P 500 (em reais)",
+  "category": "ETFs B3"
+ },
+ {
+  "ticker": "SMAL11.SA",
+  "name": "iShares Small Caps",
+  "category": "ETFs B3"
+ },
+ {
+  "ticker": "BTC-USD",
+  "name": "Bitcoin",
+  "category": "Cripto"
+ },
+ {
+  "ticker": "ETH-USD",
+  "name": "Ethereum",
+  "category": "Cripto"
+ },
+ {
+  "ticker": "SOL-USD",
+  "name": "Solana",
+  "category": "Cripto"
+ },
+ {
+  "ticker": "BNB-USD",
+  "name": "BNB",
+  "category": "Cripto"
+ },
+ {
+  "ticker": "XRP-USD",
+  "name": "XRP",
+  "category": "Cripto"
+ },
+ {
+  "ticker": "ADA-USD",
+  "name": "Cardano",
+  "category": "Cripto"
+ },
+ {
+  "ticker": "DOGE-USD",
+  "name": "Dogecoin",
+  "category": "Cripto"
+ },
+ {
+  "ticker": "LTC-USD",
+  "name": "Litecoin",
+  "category": "Cripto"
+ },
+ {
+  "ticker": "AVGO",
+  "name": "Broadcom",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "BRK-B",
+  "name": "Berkshire Hathaway",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "LLY",
+  "name": "Lilly (Eli)",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "MU",
+  "name": "Micron Technology",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "MA",
+  "name": "Mastercard",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "ABBV",
+  "name": "AbbVie",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "PLTR",
+  "name": "Palantir Technologies",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "CVX",
+  "name": "Chevron Corporation",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "ORCL",
+  "name": "Oracle Corporation",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "COST",
+  "name": "Costco",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "CSCO",
+  "name": "Cisco",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "PG",
+  "name": "Procter & Gamble",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "UNH",
+  "name": "UnitedHealth Group",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "BAC",
+  "name": "Bank of America",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "MRK",
+  "name": "Merck & Co.",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "AMAT",
+  "name": "Applied Materials",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "CAT",
+  "name": "Caterpillar Inc.",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "PANW",
+  "name": "Palo Alto Networks",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "LRCX",
+  "name": "Lam Research",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "HD",
+  "name": "Home Depot (The)",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "PM",
+  "name": "Philip Morris International",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "DELL",
+  "name": "Dell Technologies",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "GE",
+  "name": "GE Aerospace",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "MS",
+  "name": "Morgan Stanley",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "TXN",
+  "name": "Texas Instruments",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "CRWD",
+  "name": "CrowdStrike",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "GS",
+  "name": "Goldman Sachs",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "RTX",
+  "name": "RTX Corporation",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "TMO",
+  "name": "Thermo Fisher Scientific",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "WFC",
+  "name": "Wells Fargo",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "AMGN",
+  "name": "Amgen",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "IBM",
+  "name": "IBM",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "ANET",
+  "name": "Arista Networks",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "LIN",
+  "name": "Linde plc",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "GEV",
+  "name": "GE Vernova",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "MRVL",
+  "name": "Marvell Technology",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "AXP",
+  "name": "American Express",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "ADI",
+  "name": "Analog Devices",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "KLAC",
+  "name": "KLA Corporation",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "C",
+  "name": "Citigroup",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "SNDK",
+  "name": "Sandisk",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "APH",
+  "name": "Amphenol",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "CRM",
+  "name": "Salesforce",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "GILD",
+  "name": "Gilead Sciences",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "QCOM",
+  "name": "Qualcomm",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "COP",
+  "name": "ConocoPhillips",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "BLK",
+  "name": "BlackRock",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "VZ",
+  "name": "Verizon",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "ABT",
+  "name": "Abbott Laboratories",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "UNP",
+  "name": "Union Pacific Corporation",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "DE",
+  "name": "Deere & Company",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "NEE",
+  "name": "NextEra Energy",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "PFE",
+  "name": "Pfizer",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "WELL",
+  "name": "Welltower",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "DHR",
+  "name": "Danaher Corporation",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "TMUS",
+  "name": "T-Mobile US",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "STX",
+  "name": "Seagate Technology",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "ISRG",
+  "name": "Intuitive Surgical",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "NOW",
+  "name": "ServiceNow",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "SCHW",
+  "name": "Charles Schwab Corporation",
+  "category": "Ações EUA"
+ },
+ {
+  "ticker": "BPAC3.SA",
+  "name": "Bco Btg Pactual",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "ITSA4.SA",
+  "name": "Itausa",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "AXIA3.SA",
+  "name": "Axia Energia",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "VIVT3.SA",
+  "name": "Telefônica Brasil",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "SANB4.SA",
+  "name": "Bco Santander (brasil)",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "SBSP3.SA",
+  "name": "Cia Saneamento Basico Est Sao Paulo",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "BBSE3.SA",
+  "name": "Bb Seguridade Participações",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "RDOR3.SA",
+  "name": "Rede Dor São Luiz",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "EMBJ3.SA",
+  "name": "Embraer",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "CXSE3.SA",
+  "name": "Caixa Seguridade Participações",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "ENEV3.SA",
+  "name": "Eneva",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "CPFE3.SA",
+  "name": "Cpfl Energia",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "TIMS3.SA",
+  "name": "Tim",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "CPLE3.SA",
+  "name": "Cia Paranaense de Energia - Copel",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "SAUD3.SA",
+  "name": "Bradsaude",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "EGIE3.SA",
+  "name": "Engie Brasil Energia",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "UGPA3.SA",
+  "name": "Ultrapar Participacoes",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "VBBR3.SA",
+  "name": "Vibra Energia",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "CMIG4.SA",
+  "name": "Cia Energetica de Minas Gerais - Cemig",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "PSSA3.SA",
+  "name": "Porto Seguro",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "MOTV3.SA",
+  "name": "Motiva Infraestrutura de Mobilidade",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "CMIN3.SA",
+  "name": "Csn Mineração",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "MBRF3.SA",
+  "name": "Marfrig Global Foods",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "KLBN4.SA",
+  "name": "Klabin",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "ISAE4.SA",
+  "name": "Isa Energia Brasil",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "TOTS3.SA",
+  "name": "Totvs",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "CSMG3.SA",
+  "name": "Cia Saneamento de Minas Gerais-copasa Mg",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "ENGI4.SA",
+  "name": "Energisa",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "CGAS5.SA",
+  "name": "Cia Gas de Sao Paulo - Comgas",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "HYPE3.SA",
+  "name": "Hypera",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "PASS3.SA",
+  "name": "Compass Gas e Energia",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "GOAU4.SA",
+  "name": "Metalurgica Gerdau",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "TAEE4.SA",
+  "name": "Transmissora Aliança de Energia Elétrica",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "REDE3.SA",
+  "name": "Rede Energia Participações",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "ALOS3.SA",
+  "name": "Allos",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "FLRY3.SA",
+  "name": "Fleury",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "AURE3.SA",
+  "name": "Auren Energia",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "EQPA3.SA",
+  "name": "Equatorial Para Distribuidora de Energia",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "ALUP4.SA",
+  "name": "Alupar Investimento",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "ASAI3.SA",
+  "name": "Sendas Distribuidora",
+  "category": "Ações B3"
+ },
+ {
+  "ticker": "ADSH11.SA",
+  "name": "Ad Shopping",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "GGRC11.SA",
+  "name": "Zagros Renda Imobiliária",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "SNEL11.SA",
+  "name": "Suno Energias Limpas Is",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "CPUR11.SA",
+  "name": "Capitânia Hbc Renda Urbana…",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "GARE11.SA",
+  "name": "Guardian Real Estate de",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "KNSC11.SA",
+  "name": "Kinea Securities",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "RBRX11.SA",
+  "name": "Patria Plus Multiestratégia Real Estate",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "BTHF11.SA",
+  "name": "Btg Pactual Real Estate Hedge Fund",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "HFOF11.SA",
+  "name": "Hedge Top Fofii 3 de",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "CPSH11.SA",
+  "name": "Capitânia Shoppings",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "JSAF11.SA",
+  "name": "Js Ativos Financeiros",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "HGBS11.SA",
+  "name": "Hedge Brasil Shopping de",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "ALZR11.SA",
+  "name": "Alianza Trust Renda Imobiliária",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "AZPL11.SA",
+  "name": "Az Quest Panorama Logística",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "TEPP11.SA",
+  "name": "Tellus Properties",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "MCRE11.SA",
+  "name": "Mauá Capital Real Estate",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "RBVA11.SA",
+  "name": "Rio Bravo Renda Varejo de",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "TRXB11.SA",
+  "name": "Trx Real Estate Ii",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "HBCR11.SA",
+  "name": "Hbc Renda Urbana",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "BTCI11.SA",
+  "name": "Btg Pactual Crédito Imobiliário - Fundo…",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "JSCR11.SA",
+  "name": "Js Recebíveis Imobiliários",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "MIDW11.SA",
+  "name": "Midway Mall",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "PMIS11.SA",
+  "name": "Paramis Hedge Fund",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "NCRI11.SA",
+  "name": "Vinci Crédito Imobiliário…",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "HREC11.SA",
+  "name": "Hedge Recebíveis Imobiliários de",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "VVCR11.SA",
+  "name": "V2 Recebíveis Imobiliários",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "MANA11.SA",
+  "name": "Manatí Capital Hedge Fund de",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "SPXS11.SA",
+  "name": "Spx Real Estate Multiestratégia",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "SAPI11.SA",
+  "name": "Santander Papéis Imobiliários Fundo de…",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "JSRE11.SA",
+  "name": "Js Real Estate Multigestão",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "TGAR11.SA",
+  "name": "Tg Ativo Real",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "CCME11.SA",
+  "name": "Canuma Capital Multiestratégia",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "HSML11.SA",
+  "name": "Hsi Malls de",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "PVBI11.SA",
+  "name": "Vbi Prime Properties",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "XPSF11.SA",
+  "name": "Xp Selection Fundo de Fundos de…",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "IRIM11.SA",
+  "name": "Iridium",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "BRCO11.SA",
+  "name": "Bresco Logística",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "XPCA11.SA",
+  "name": "Xp Crédito Agrícola-fundo de Investimento…",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "MCCI11.SA",
+  "name": "Mauá Capital Recebíveis Imobiliários…",
+  "category": "FIIs"
+ },
+ {
+  "ticker": "PORD11.SA",
+  "name": "Polo Crédito Imobiliário",
+  "category": "FIIs"
+ }
+]

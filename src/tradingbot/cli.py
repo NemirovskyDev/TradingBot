@@ -1,17 +1,19 @@
 """Linha de comando: `backtest TICKER` (fora da amostra, com veredito) e `analyze TICKER` (relatório do analyst)."""
 import argparse
-import inspect
 import sys
-from dataclasses import asdict
 from datetime import date, timedelta
 from pathlib import Path
 
 from tradingbot.analyst import AnalystReport, analyze
+from tradingbot.catalog import DEFAULT_PATH, load_catalog, write_catalog
+from tradingbot.catalog_build import build_from_network, check_expanded
+from tradingbot.catalog_seed import B3, FII, US
 from tradingbot.config import load_config
 from tradingbot.data import DataError, get_prices
 from tradingbot.demo import make_synthetic_prices
 from tradingbot.evaluate import Evaluation, PromotionCriteria, evaluate_detailed
-from tradingbot.export import export_run, write_index
+from tradingbot.export import export_run, publish, write_index
+from tradingbot.export_real import MAX_SKIPPED_FRACTION, export_real, strategy_params
 from tradingbot.strategies import STRATEGIES
 
 DISCLAIMER = "Simulação com dados históricos. Não é recomendação de investimento."
@@ -97,6 +99,41 @@ def _cmd_export(args: argparse.Namespace) -> int:
     except (FileNotFoundError, ValueError) as exc:
         print(f"Erro de configuração: {exc}", file=sys.stderr)
         return 2
+    return _export_real(args, cfg) if args.real else _export_synthetic(args, cfg)
+
+
+def _export_real(args: argparse.Namespace, cfg) -> int:
+    """Um conjunto de execuções por ativo do catálogo. Não troca o que já está publicado se a fonte falhou em massa."""
+    try:
+        assets = load_catalog(Path(args.catalog))
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"Erro no catálogo: {exc}", file=sys.stderr)
+        return 2
+    if args.limit:
+        assets = assets[: args.limit]
+    out = Path(args.out)
+    result = export_real(assets, cfg, out, args.start, args.end)
+    if result.skipped:
+        print(f"Ignorados ({len(result.skipped)}): " + "; ".join(result.skipped))
+    if not result.runs:
+        print("Erro: nenhum ativo gerou dados; nada foi gravado.", file=sys.stderr)
+        return 2
+    if not args.limit and len(result.skipped) > MAX_SKIPPED_FRACTION * len(assets):
+        print(
+            f"Erro: mais de {MAX_SKIPPED_FRACTION:.0%} dos ativos falharam (a fonte pode estar limitando as requisições); "
+            "o índice e a limpeza foram pulados para não trocar o que já está publicado.",
+            file=sys.stderr,
+        )
+        return 2
+    # --limit é modo de teste: o índice fica só com esses ativos e nada é apagado
+    publish(out, result.runs, prune=not args.limit)
+    if args.limit:
+        print(f"Aviso: modo de teste (--limit {args.limit}); o índice tem só esses ativos e nenhum arquivo antigo foi apagado.")
+    print(f"{len({r['ticker'] for r in result.runs})} ativos, {len(result.runs)} execuções gravadas em {out}")
+    return 0
+
+
+def _export_synthetic(args: argparse.Namespace, cfg) -> int:
     out = Path(args.out)
     prices = make_synthetic_prices()
     runs = []
@@ -105,12 +142,24 @@ def _cmd_export(args: argparse.Namespace) -> int:
         if ev.strategy is None or ev.benchmark is None or ev.test is None:
             print(f"Erro: histórico curto demais para exportar {name}.", file=sys.stderr)
             return 2
-        defaults = {k: v.default for k, v in inspect.signature(STRATEGIES[name]).parameters.items() if k != "prices"}
-        params = {"estrategia": defaults, "risco": asdict(cfg.risk), "custos": asdict(cfg.costs)}
+        params = strategy_params(name, cfg)
         run_id = f"demo-{name}"
         export_run(run_id, "DEMO", name, params, ev.test, ev.strategy, ev.benchmark, ev.verdict, out, synthetic=True)
         runs.append({"id": run_id, "ticker": "DEMO", "strategy": name, "label": f"Exemplo · {name}"})
     print(f"{len(runs)} execuções de exemplo gravadas em {write_index(out, runs).parent}")
+    return 0
+
+
+def _cmd_catalog(args: argparse.Namespace) -> int:
+    """Monta o catálogo pela rede. Só grava se as fontes responderam e o resultado é válido; o arquivo antigo fica intacto se falhar."""
+    try:
+        assets = build_from_network(args.sp, args.b3, args.fii)
+        check_expanded(assets, {US: args.sp, B3: args.b3, FII: args.fii})
+        out = write_catalog(assets, Path(args.out))
+    except Exception as exc:  # noqa: BLE001 - rede, parse ou validação: o usuário precisa da mensagem, não do traceback
+        print(f"Erro ao montar o catálogo (nada foi gravado): {exc}", file=sys.stderr)
+        return 2
+    print(f"{len(assets)} ativos gravados em {out}")
     return 0
 
 
@@ -132,11 +181,24 @@ def build_parser() -> argparse.ArgumentParser:
     an.add_argument("--out", default="reports")
     an.set_defaults(func=_cmd_analyze)
 
-    ex = sub.add_parser("export", help="gera os JSON de exemplo para o front")
-    ex.add_argument("--synthetic", action="store_true", required=True, help="usa dados sintéticos rotulados")
+    ex = sub.add_parser("export", help="gera os JSON do painel (dados reais do catálogo ou sintéticos de exemplo)")
+    mode = ex.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--real", action="store_true", help="baixa os ativos do catálogo e roda as 3 estratégias em cada um")
+    mode.add_argument("--synthetic", action="store_true", help="usa dados sintéticos rotulados")
     ex.add_argument("--out", default="web/public/data")
     ex.add_argument("--config", default="config.toml")
+    ex.add_argument("--catalog", default=str(DEFAULT_PATH))
+    ex.add_argument("--start", default="2018-01-01")
+    ex.add_argument("--end", default=date.today().isoformat())
+    ex.add_argument("--limit", type=int, default=0, help="só os N primeiros ativos do catálogo (para testar)")
     ex.set_defaults(func=_cmd_export)
+
+    ca = sub.add_parser("catalog", help="monta o catálogo de ativos (seed + S&P 500, Ibovespa e FIIs; usa a rede)")
+    ca.add_argument("--out", default=str(DEFAULT_PATH))
+    ca.add_argument("--sp", type=int, default=60, help="quantas ações do S&P 500 acrescentar")
+    ca.add_argument("--b3", type=int, default=40, help="quantas ações da B3 acrescentar")
+    ca.add_argument("--fii", type=int, default=40, help="quantos FIIs acrescentar")
+    ca.set_defaults(func=_cmd_catalog)
     return parser
 
 

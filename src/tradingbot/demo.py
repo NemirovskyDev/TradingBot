@@ -1,4 +1,4 @@
-﻿"""Dados de exemplo (sintéticos) para a demo pública: não representam nenhum ativo real."""
+"""Dados de exemplo (sintéticos) para a demo pública: não representam nenhum ativo real."""
 import numpy as np
 import pandas as pd
 
