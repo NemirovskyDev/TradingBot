@@ -1,5 +1,9 @@
 # TradingBot
 
+![Tela Carteiras do painel: ARCA contra CDI, Ibovespa e S&P 500 em reais](docs/img/capa.png)
+
+Painel completo: [docs/img/carteiras-desktop.png](docs/img/carteiras-desktop.png).
+
 Assistente de investimento e backtest de estratégias de swing, com um painel web que mostra, em linguagem simples, o que o bot teria feito em cada operação, para cerca de 200 ativos reais.
 
 > **Simulação com dados históricos, sem envio de ordens e sem recomendação de investimento.** Nada aqui opera dinheiro de verdade. Os dados **não são em tempo real**: foram baixados uma vez e ficam no repositório.

@@ -20,6 +20,9 @@ colors:
   loss-line: "#6b2d31"
   alert: "#f5a524"
   benchmark: "#8fa1b3"
+  ref-cdi: "#8fa1b3"
+  ref-ibov: "#f5a524"
+  ref-sp: "#c9a7ff"
 typography:
   display:
     fontFamily: "Hanken Grotesk Variable, system-ui, -apple-system, Segoe UI, sans-serif"
@@ -93,9 +96,36 @@ components:
     rounded: "{rounded.md}"
     height: "40px"
     padding: "0 0.75rem"
+  chip:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.pill}"
+    height: "40px"
+    padding: "0 1rem"
+  chip-selected:
+    backgroundColor: "{colors.action-wash}"
+    textColor: "{colors.action}"
+  goal-card:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink-soft}"
+    rounded: "{rounded.md}"
+    padding: "1rem"
+  goal-card-selected:
+    backgroundColor: "{colors.action-wash}"
+    textColor: "{colors.action}"
+  button-quiet:
+    textColor: "{colors.ink}"
+    rounded: "{rounded.md}"
+    height: "40px"
+    padding: "0 1rem"
+  profile-warning:
+    backgroundColor: "{colors.loss-wash}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.md}"
+    padding: "0.75rem 1rem"
   hint-tip:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.surface}"
+    backgroundColor: "{colors.raised}"
+    textColor: "{colors.ink}"
     rounded: "{rounded.md}"
     padding: "0.75rem 1rem"
   simulation-banner:
@@ -134,7 +164,7 @@ Grafite azulado com um azul claro de ação; verde e vermelho reservados a resul
 - **Vermelho Perda** (loss) e **Lavado de Perda** (loss-wash): resultado negativo, vela de baixa, marcador de saída com prejuízo, linha de stop.
 
 ### Tertiary
-- **Âmbar Alerta** (alert): veredito não aprovado (ícone). Só texto/ícone sobre as superfícies escuras.
+- **Âmbar Alerta** (alert): veredito não aprovado (ícone). Só texto/ícone sobre as superfícies escuras. O mesmo valor também é a cor da linha do Ibovespa nos gráficos de carteiras (`ref-ibov`); lá é identidade de série, não alerta.
 
 ### Neutral
 - **Fundo Grafite** (ground): fundo da página, hover de linha, faixa do filtro.
@@ -142,11 +172,17 @@ Grafite azulado com um azul claro de ação; verde e vermelho reservados a resul
 - **Linha** (line): todas as bordas e divisórias de 1px.
 - **Tinta** (ink): texto principal.
 - **Tinta Suave** (ink-soft): rótulos, textos secundários, navegação inativa.
-- **Linha forte** (line-strong, 3:1 sobre a superfície): borda de controles, rolagem, pausa tracejada. **Benchmark** (benchmark, 3:1): linhas de referência dos gráficos. **Linha de perda** (loss-line): borda de erro.
+- **Linha forte** (line-strong, 3:1 sobre a superfície): borda de controles, rolagem, pausa tracejada. **Benchmark** (benchmark, 3:1): linha de referência do gráfico por ativo. **Linha de perda** (loss-line): borda de erro.
+
+### Referências dos gráficos de carteiras
+- **Cinza-azul CDI** (ref-cdi, mesmo valor de `benchmark`): CDI, tracejada.
+- **Âmbar Ibovespa** (ref-ibov): Ibovespa, pontilhada.
+- **Lilás S&P** (ref-sp): S&P 500, tracejada longa.
+- A carteira escolhida é sempre a linha azul de ação, sólida e mais grossa (3, contra 2 das referências).
 
 ### Named Rules
 **The Result-Only Color Rule.** Verde e vermelho significam resultado financeiro e nada mais; ação e navegação usam o azul.
-**The Never-Alone Rule.** Cor nunca é o único sinal: vela de alta é vazada e de baixa é cheia, compra é seta para cima abaixo da barra e saída é seta para baixo acima, benchmark é tracejado, resultados trazem sinal e palavra.
+**The Never-Alone Rule.** Cor nunca é o único sinal: vela de alta é vazada e de baixa é cheia, compra é seta para cima abaixo da barra e saída é seta para baixo acima, cada referência tem formato de linha próprio (tracejada, pontilhada, tracejada longa), resultados trazem sinal e palavra.
 
 ## Typography
 
@@ -179,15 +215,15 @@ Alvos de toque: 40px (botões, selects, nav), 44px (itens de lista de operaçõe
 Híbrido discreto: profundidade vem de borda de 1px mais fundo um pouco mais claro sobre o fundo escuro; uma sombra suave e difusa só nos painéis e no tooltip.
 
 ### Shadow Vocabulary
-- **Painel** (`box-shadow: 0 1px 2px rgb(20 32 43 / 0.06), 0 4px 14px rgb(20 32 43 / 0.06)`): painéis e tooltip de glossário.
-- **Segmento ativo** (`box-shadow: 0 1px 2px rgb(20 32 43 / 0.12)`): botão selecionado do filtro de operações.
+- **Painel** (`box-shadow: 0 1px 2px rgb(0 0 0 / 0.45), 0 6px 18px rgb(0 0 0 / 0.35)`): painéis, painel de perfil e tooltip de glossário (`--shadow`).
+- **Segmento ativo** (`box-shadow: 0 1px 2px rgb(0 0 0 / 0.5)`): botão selecionado do filtro de operações.
 
 ### Named Rules
 **The No-Nested-Card Rule.** Um painel nunca contém outro painel com borda e sombra; subdivisão usa divisórias de 1px (faixa de métricas, notas, fatos da operação).
 
 ## Shapes
 
-Raio pequeno e uniforme: 8px (`--radius`) para painéis, botões, campos, itens de lista e cartões móveis; 6px para o botão interno do filtro; 4px no anel de foco e em código inline; pílula (999px) só no selo "exemplo". Bordas 1px em `--line`; borda tracejada (#b9c4d0) só no aviso de "selecione uma operação". Foco: contorno de 2px em azul de ação, offset 2px.
+Raio pequeno e uniforme: 8px (`--radius`) para painéis, botões, campos, itens de lista e cartões móveis; 6px para o botão interno do filtro; 4px no anel de foco e em código inline; pílula (999px) no selo "exemplo" e nos chips de carteira. Bordas 1px em `--line`; borda tracejada em `line-strong` só no aviso de "selecione uma operação". Foco: contorno de 2px em azul de ação, offset 2px.
 
 ## Components
 
@@ -197,7 +233,7 @@ Raio pequeno e uniforme: 8px (`--radius`) para painéis, botões, campos, itens 
 - **Controles ocultos:** botões de ordenar, de dica e de filtro são sem fundo; filtro segmentado marca o ativo com fundo elevado e sombra de segmento.
 
 ### Shell e navegação
-Barra lateral branca com borda direita; itens de 40px, texto tinta suave, peso 560; hover com fundo cinza; página atual (`aria-current="page"`) com lavado de ação e texto azul. Cinco rotas por hash: Visão geral, Gráfico, Operações, Risco, Glossário. Link "pular para o conteúdo" visível ao receber foco. No celular, barra inferior.
+Barra lateral em `surface` com borda direita; itens de 40px, texto tinta suave, peso 560; hover com fundo `ground`; página atual (`aria-current="page"`) com lavado de ação e texto azul. Seis rotas por hash: Carteiras (primeira e padrão), Visão geral, Gráfico, Operações, Risco, Glossário. Link "pular para o conteúdo" visível ao receber foco. No celular, barra inferior.
 
 ### Cabeçalho da execução e seletor
 h1 em headline (ticker sem sufixos técnicos, mais a estratégia) com selo pílula "exemplo" quando os dados são sintéticos; abaixo, o nome do ativo e a categoria, e a sub-linha do trecho de teste em tinta suave. Dois seletores nativos lado a lado, "Ativo" (agrupado por categoria com optgroup) e "Estratégia" (só as do ativo), com borda `--line`, altura 40px e rótulo acima; ocupam a linha toda e quebram em telas estreitas, sem passar da largura.
@@ -209,7 +245,7 @@ Um painel sem padding com quatro itens divididos por linha de 1px; rótulo (labe
 Painel: superfície, borda, 8px, padding 1.5rem, sombra de painel. Veredito: título com ícone (verde aprovado, âmbar não aprovado), razões em lista, nota final separada por linha.
 
 ### Tabela ordenável
-Cabeçalhos em botão com marca de ordenação, linhas com divisória e hover cinza, colunas numéricas à direita. No celular o cabeçalho some, cada linha vira cartão com rótulo (`data-label`) antes do valor e um select de ordenação aparece.
+Cabeçalhos em botão com marca de ordenação, linhas com divisória e hover `ground`; na tela Carteiras as linhas são clicáveis (hover e selecionada em lavado de ação, nome como botão `aria-pressed`), colunas numéricas à direita. No celular o cabeçalho some, cada linha vira cartão com rótulo (`data-label`) antes do valor e um select de ordenação aparece.
 
 ### Detalhe da operação
 Painel lateral: título, lista "por quê" com rótulo/valor, fatos em 2 colunas sob divisória; lista de operações com botões de 44px, selecionado com borda azul e lavado de ação (`aria-pressed`). Resultado em verde/vermelho/cinza com palavra junto.
@@ -221,7 +257,7 @@ Termo com sublinhado pontilhado; tooltip elevado (`raised`, texto `ink`, 18rem, 
 Vazio/erro/carregando em caixa com borda (erro com borda `loss-line`) ou variante plana; carregando com spinner de 18px (800ms, parado com movimento reduzido); texto com título em 650 e detalhe em label.
 
 ### Gráficos
-Curva de capital em azul de ação contra benchmark tracejado (`benchmark`), legenda com amostras de linha. Velas: alta vazada (preenchimento da cor da superfície, borda e pavio verdes), baixa cheia vermelha. Marcadores: seta para cima abaixo da barra (compra), seta para baixo acima (saída); só o selecionado leva texto e tamanho maior. Linhas tracejadas de Entrada (azul) e Stop (vermelho) para a operação selecionada. Grade só horizontal em `--line`, sem borda de escala, rótulos 12px tinta suave, locale pt-BR, roda do mouse não escala. Cada gráfico tem tabela de dados equivalente em `<details>` e legenda OHLC ao passar o cursor.
+Curva de capital em azul de ação contra benchmark tracejado (`benchmark`), legenda com amostras de linha. O gráfico de carteiras está em Carteiras. Velas: alta vazada (preenchimento da cor da superfície, borda e pavio verdes), baixa cheia vermelha. Marcadores: seta para cima abaixo da barra (compra), seta para baixo acima (saída); só o selecionado leva texto e tamanho maior. Linhas tracejadas de Entrada (azul) e Stop (vermelho) para a operação selecionada. Grade só horizontal em `--line`, sem borda de escala, rótulos 12px tinta suave, locale pt-BR, roda do mouse não escala. Cada gráfico tem tabela de dados equivalente em `<details>` e legenda OHLC ao passar o cursor.
 
 ### Aviso de simulação
 Faixa fina no topo de toda tela (`role="note"`, lavado de ação, centralizada): "Simulação com dados históricos, sem envio de ordens. Não é recomendação de investimento." O rodapé credita Yahoo Finance (via yfinance), diz que os dados não são em tempo real e credita o TradingView.
@@ -248,10 +284,10 @@ Biblioteca `motion` importada só em `web/src/motion/index.tsx`. Easing de saíd
 - **Don't** apresentar o painel como recomendação de investimento.
 
 ### Carteiras
-Tela inicial (`#/carteiras`, `Carteiras` em primeiro na navegação). Comparativo ordenável (11 carteiras e 3 referências, selo "Referência"), seletor em chips de rádio (`fieldset`, foco visível), painel de detalhe com frase de leitura, métricas, gráfico, composição, regra e tabela ano a ano. O gráfico das carteiras usa escala logarítmica (com nota ao lado) e distingue as referências pelo formato da linha (tracejada, pontilhada, tracejada longa), não só pela cor; a carteira escolhida é a linha azul sólida e grossa. A tabela comparativa rola dentro do painel em telas médias e vira cartões no celular. A navegação do celular tem 6 colunas.
+Tela inicial (`#/carteiras`, `Carteiras` em primeiro na navegação). Comparativo ordenável (11 carteiras e 3 referências, selo "Referência"), seletor em chips de rádio (borda `line-strong`, selecionado em lavado de ação) (`fieldset`, foco visível), painel de detalhe com frase de leitura, métricas, gráfico, composição, regra e tabela ano a ano. O gráfico das carteiras usa escala logarítmica (com nota ao lado) e distingue as referências pela cor própria (`ref-cdi`, `ref-ibov`, `ref-sp`) e pelo formato da linha (tracejada, pontilhada, tracejada longa), não só pela cor; a legenda repete cada amostra; a carteira escolhida é a linha azul sólida e grossa. A tabela comparativa rola dentro do painel em telas médias e vira cartões no celular. A navegação do celular tem 6 colunas.
 
 ### Escolha de objetivo
-No topo da tela Carteiras, um `fieldset` "Qual é o seu objetivo?" com 4 cartões de rádio (nome e frase), em grade que quebra por largura. O escolhido ganha borda e lavado de ação. Abaixo, um painel com o que esperar, a frase de leitura do exemplo, o aviso (fundo `loss-wash`, `role="note"`), botão para ver o exemplo em detalhe, link para as estratégias por ativo (só no perfil de swing) e as metodologias parecidas como links de texto com os números da janela comum. Escolher um perfil também seleciona a carteira dele no detalhe. Os chips de carteira ficam em dois grupos: metodologias clássicas e exemplos por objetivo.
+No topo da tela Carteiras, um `fieldset` "Qual é o seu objetivo?" com 4 cartões de rádio (nome e frase; raio 8px, borda `line-strong`, hover com borda de ação), em grade `auto-fit` de no mínimo 13rem. O escolhido ganha borda e lavado de ação e o nome em azul; foco visível no cartão. Abaixo, um painel com o que esperar, a frase de leitura do exemplo, o aviso (fundo `loss-wash`, `role="note"`), botão discreto (`button-quiet`: sem fundo, borda `line-strong`) para ver o exemplo em detalhe, link para as estratégias por ativo (só no perfil de swing) e as metodologias parecidas como links de texto com os números da janela comum. Escolher um perfil também seleciona a carteira dele no detalhe. Os chips de carteira ficam em dois grupos: metodologias clássicas e exemplos por objetivo.
 
 ### Janela de comparação
-Acima da tabela, dois rádios: "Mesmo período para todas" (padrão, justo) e "Histórico completo de cada uma", que acrescenta a coluna "Desde" e um aviso de que períodos diferentes não se comparam de forma justa. O gráfico da carteira escolhida começa na data dela e reescala as referências para começarem juntas em 100.
+Acima da tabela, dois rádios nativos em linha (alvo de 40px): "Mesmo período para todas" (padrão, justo) e "Histórico completo de cada uma", que acrescenta a coluna "Desde" e um aviso de que períodos diferentes não se comparam de forma justa. O gráfico da carteira escolhida começa na data dela e reescala as referências para começarem juntas em 100.
